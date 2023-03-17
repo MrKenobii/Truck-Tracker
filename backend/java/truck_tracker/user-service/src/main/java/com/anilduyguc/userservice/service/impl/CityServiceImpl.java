@@ -15,10 +15,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CityServiceImpl implements CityService {
-    @Autowired
     private final CityRepository cityRepository;
-    @Autowired
-    private final UserService userService;
 
     @Override
     public List<City> getCities() {
@@ -27,18 +24,16 @@ public class CityServiceImpl implements CityService {
 
     @Override
     public City getCityById(String id) {
-        City city = cityRepository.findById(id).orElseThrow(() -> {
+        return cityRepository.findById(id).orElseThrow(() -> {
             throw new RuntimeException("City with id: " + id + " does not found");
         });
-        return city;
     }
 
     @Override
     public City getCityByName(String cityName) {
-        City city = cityRepository.findCitiesByName(cityName).orElseThrow(() -> {
+        return cityRepository.findCitiesByName(cityName).orElseThrow(() -> {
             throw new RuntimeException("City with name: " + cityName + " does not found");
         });
-        return city;
     }
 
     @Override

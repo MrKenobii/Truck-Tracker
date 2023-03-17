@@ -22,6 +22,10 @@ public class Truck {
     private boolean isEscorted;
     private String longitude;
     private String latitude;
+    private String fromLatitude;
+    private String fromLongitude;
+    private String toLatitude;
+    private String toLongitude;
     private String status;
     @ManyToOne(cascade = {
             CascadeType.PERSIST,

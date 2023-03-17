@@ -15,7 +15,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TruckServiceImpl implements TruckService {
-    @Autowired
     private final TruckRepository truckRepository;
 
     @Override
@@ -25,10 +24,9 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public Truck getTruckById(String id) {
-        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
+        return truckRepository.findById(id).orElseThrow(() -> {
             throw new RuntimeException("Truck with id: " + id + " was not found");
         });
-        return truck;
     }
 
     @Override
@@ -78,6 +76,10 @@ public class TruckServiceImpl implements TruckService {
         truckToUpdate.setStatus(truck.getStatus());
         truckToUpdate.setLatitude(truck.getLatitude());
         truckToUpdate.setLongitude(truck.getLongitude());
+        truckToUpdate.setFromLongitude(truck.getFromLongitude());
+        truckToUpdate.setFromLatitude(truck.getFromLatitude());
+        truckToUpdate.setToLatitude(truck.getToLatitude());
+        truckToUpdate.setToLongitude(truck.getToLongitude());
         truckToUpdate.setFromCity(truck.getFromCity());
         truckToUpdate.setDestinationCity(truck.getDestinationCity());
         truckToUpdate.setLicensePlate(truck.getLicensePlate());
@@ -92,5 +94,16 @@ public class TruckServiceImpl implements TruckService {
             throw new RuntimeException("Truck with id: " + id + " was not found");
         });
         truckRepository.delete(truck);
+    }
+
+    @Override
+    public Truck setCurrentLocationByTruckId(String id, Location location) {
+        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
+            throw new RuntimeException("Truck with id: " + id + " was not found");
+        });
+        truck.setLongitude(location.getLongitude());
+        truck.setLatitude(location.getLatitude());
+        truckRepository.save(truck);
+        return truck;
     }
 }

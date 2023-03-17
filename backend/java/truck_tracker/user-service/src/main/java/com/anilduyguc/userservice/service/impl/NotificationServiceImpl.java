@@ -13,7 +13,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
-    @Autowired
     private final NotificationRepository notificationRepository;
 
     @Override
@@ -23,10 +22,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Notification getNotificationById(String id) {
-        Notification notification = notificationRepository.findById(id).orElseThrow(() -> {
+        return notificationRepository.findById(id).orElseThrow(() -> {
             throw new RuntimeException("Notification with id: " + id + " was not found");
         });
-        return notification;
     }
 
     @Override

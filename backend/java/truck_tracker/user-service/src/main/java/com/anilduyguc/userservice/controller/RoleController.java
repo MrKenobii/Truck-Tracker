@@ -14,7 +14,6 @@ import java.util.List;
 @RequestMapping("/api/v1/role")
 @RequiredArgsConstructor
 public class RoleController {
-    @Autowired
     private final RoleService roleService;
 
     @GetMapping

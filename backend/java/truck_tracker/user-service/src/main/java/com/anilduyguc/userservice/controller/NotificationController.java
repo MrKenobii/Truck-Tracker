@@ -15,7 +15,6 @@ import java.util.List;
 @RequestMapping("/api/v1/notification")
 @RequiredArgsConstructor
 public class NotificationController {
-    @Autowired
     private final NotificationService notificationService;
 
     @GetMapping

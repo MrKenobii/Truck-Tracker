@@ -15,7 +15,6 @@ import java.util.List;
 @RequestMapping("/api/v1/city")
 @RequiredArgsConstructor
 public class CityController {
-    @Autowired
     private final CityService cityService;
     @GetMapping
     public ResponseEntity<?> getCityByNameOrAll(@RequestParam(required = false) String name){

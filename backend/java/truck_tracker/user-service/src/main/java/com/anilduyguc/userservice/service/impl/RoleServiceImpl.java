@@ -14,7 +14,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
-    @Autowired
     private final RoleRepository roleRepository;
 
     @Override
@@ -24,18 +23,16 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getRoleById(String id) {
-        Role role = roleRepository.findById(id).orElseThrow(() -> {
+        return roleRepository.findById(id).orElseThrow(() -> {
             throw new RuntimeException("Role with id: " + id + " was not found");
         });
-        return role;
     }
 
     @Override
     public Role getRoleByName(String name) {
-        Role role = roleRepository.findByName(name).orElseThrow(() -> {
+        return roleRepository.findByName(name).orElseThrow(() -> {
             throw new RuntimeException("Role with name: " + name + " was not found");
         });
-        return role;
     }
 
     @Override

@@ -15,7 +15,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired
     private final UserRepository userRepository;
     @Override
     public List<User> getUsers() {
@@ -24,17 +23,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(String id) {
-        User user = userRepository.findById(id).orElseThrow(() -> {
+        return userRepository.findById(id).orElseThrow(() -> {
             throw new RuntimeException("User with id: " + id + " was not found");
         });
-        return user;
     }
     @Override
     public User getUserByEmail(String email) {
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> {
+        return userRepository.findUserByEmail(email).orElseThrow(() -> {
             throw new RuntimeException("User with email: " + email + " does not exists");
         });
-        return user;
     }
 
     @Override

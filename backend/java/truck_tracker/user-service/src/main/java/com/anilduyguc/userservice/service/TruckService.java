@@ -15,4 +15,6 @@ public interface TruckService {
     Truck createTruck(Truck truck);
     Truck updateTruck(String id, Truck truck);
     void deleteTruck(String id);
+
+    Truck setCurrentLocationByTruckId(String id, Location location);
 }

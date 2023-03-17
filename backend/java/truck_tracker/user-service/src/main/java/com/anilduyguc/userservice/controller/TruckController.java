@@ -16,7 +16,6 @@ import java.util.List;
 @RequestMapping("/api/v1/truck")
 @RequiredArgsConstructor
 public class TruckController {
-    @Autowired
     private final TruckService truckService;
     @GetMapping
     public ResponseEntity<List<Truck>> getTrucks(){
@@ -51,5 +50,9 @@ public class TruckController {
     @GetMapping("/{id}/location")
     public ResponseEntity<Location> getCurrentLocation(@PathVariable String id){
         return new ResponseEntity<>(truckService.getCurrentLocationByTruckId(id), HttpStatus.OK);
+    }
+    @PutMapping("/{id}/location")
+    public ResponseEntity<Truck> setCurrentLocation(@PathVariable String id, @RequestBody Location location){
+        return new ResponseEntity<>(truckService.setCurrentLocationByTruckId(id, location), HttpStatus.OK);
     }
 }
