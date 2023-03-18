@@ -5,13 +5,17 @@ import com.anilduyguc.userservice.modal.Role;
 import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/api/v1/user")
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -30,6 +34,17 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable String userId){
         return new ResponseEntity<>(userService.getUserById(userId), HttpStatus.OK);
+    }
+    @GetMapping("/token")
+    public ResponseEntity<User> getUserByToken(@RequestHeader HttpHeaders headers){
+        if(headers.containsKey("authorization")){
+            String token = headers.get("authorization").get(0);
+            token = token.substring(7, token.length());
+            return new ResponseEntity<>(userService.getUserByToken(token), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new User(), HttpStatus.NOT_FOUND);
+
+
     }
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user){

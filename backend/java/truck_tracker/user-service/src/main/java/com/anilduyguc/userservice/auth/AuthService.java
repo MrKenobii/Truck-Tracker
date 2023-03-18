@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -29,26 +30,33 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest registerRequest) {
-        City city = cityRepository.findCitiesByName(registerRequest.getCity()).orElseThrow(() -> new RuntimeException("No city found with name " + registerRequest.getCity()));
-        Role role = roleRepository.findByName(registerRequest.getRole()).orElseThrow(() -> new RuntimeException("No role found with name " + registerRequest.getRole()));
-        var user = User.builder()
-                .id(UUID.randomUUID().toString())
-                .isAccountActive(false)
-                .status("OFFLINE")
-                .phoneNumber(registerRequest.getPhoneNumber())
-                .city(city)
-                .name(registerRequest.getFirstName())
-                .lastName(registerRequest.getLastName())
-                .email(registerRequest.getEmail())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .role(role)
-                .build();
-        var jwt = jwtService.generateToken(user);
-        user.setToken(jwt);
-        userRepository.save(user);
-        return AuthenticationResponse.builder()
-                .token(jwt)
-                .build();
+        Optional<User> userByEmail = userRepository.findUserByEmail(registerRequest.getEmail());
+        if(userByEmail.isPresent()){
+            return AuthenticationResponse.builder().token(null).message("Email is already taken").build();
+        } else {
+            City city = cityRepository.findCitiesByName(registerRequest.getCity()).orElseThrow(() -> new RuntimeException("No city found with name " + registerRequest.getCity()));
+            Role role = roleRepository.findByName(registerRequest.getRole()).orElseThrow(() -> new RuntimeException("No role found with name " + registerRequest.getRole()));
+            var user = User.builder()
+                    .id(UUID.randomUUID().toString())
+                    .isAccountActive(false)
+                    .status("OFFLINE")
+                    .phoneNumber(registerRequest.getPhoneNumber())
+                    .city(city)
+                    .name(registerRequest.getFirstName())
+                    .lastName(registerRequest.getLastName())
+                    .email(registerRequest.getEmail())
+                    .password(passwordEncoder.encode(registerRequest.getPassword()))
+                    .role(role)
+                    .build();
+            var jwt = jwtService.generateToken(user);
+            user.setToken(jwt);
+            userRepository.save(user);
+            return AuthenticationResponse.builder()
+                    .token(jwt)
+                    .message("Register successful")
+                    .build();
+        }
+
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
@@ -59,6 +67,7 @@ public class AuthService {
         userRepository.save(user);
         return AuthenticationResponse.builder()
                 .token(jwt)
+                .message("Login succesful")
                 .build();
     }
 }

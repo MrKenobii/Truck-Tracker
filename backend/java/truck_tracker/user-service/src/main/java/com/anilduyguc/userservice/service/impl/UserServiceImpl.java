@@ -91,4 +91,11 @@ public class UserServiceImpl implements UserService {
         });
         userRepository.delete(user);
     }
+    @Override
+    public User getUserByToken(String token) {
+        System.out.println(token);
+        return userRepository.findUserByToken(token).orElseThrow(() -> {
+            throw new RuntimeException("User with token: " + token + " was not found");
+        });
+    }
 }
