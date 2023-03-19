@@ -129,8 +129,8 @@ const Map = () => {
           <MarkerF
             key={index}
             position={{
-              lng: Number(city.latitude),
-              lat: Number(city.longitude),
+              lng: Number(city.longitude),
+              lat: Number(city.latitude),
             }}
             icon={{
               url: "https://cdn-icons-png.flaticon.com/512/3391/3391472.png",
