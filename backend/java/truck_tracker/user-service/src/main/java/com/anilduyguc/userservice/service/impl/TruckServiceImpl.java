@@ -3,7 +3,9 @@ package com.anilduyguc.userservice.service.impl;
 import com.anilduyguc.userservice.dto.Location;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
+import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.repository.TruckRepository;
+import com.anilduyguc.userservice.repository.UserRepository;
 import com.anilduyguc.userservice.service.TruckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TruckServiceImpl implements TruckService {
     private final TruckRepository truckRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<Truck> getAllTrucks() {
@@ -105,5 +108,26 @@ public class TruckServiceImpl implements TruckService {
         truck.setLatitude(location.getLatitude());
         truckRepository.save(truck);
         return truck;
+    }
+
+    @Override
+    public Truck setDriver(String truckId, String userId) {
+        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> {
+            throw new RuntimeException("Not found");
+        });
+        if(truck != null){
+            System.out.println(truck.getId());
+            User user = userRepository.findById(userId).orElseThrow(() -> {
+                throw new RuntimeException(" Not found");
+            });
+            System.out.println(user.getEmail());
+            if(user.getRole().getName().equals("TRUCK_DRIVER")){
+                System.out.println("TRUCK DRIVERRRRR");
+                truck.setUser(user);
+                truckRepository.save(truck);
+                return truck;
+            }
+            else return new Truck();
+        } else return new Truck();
     }
 }

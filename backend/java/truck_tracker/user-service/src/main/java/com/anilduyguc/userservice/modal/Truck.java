@@ -43,4 +43,7 @@ public class Truck {
     })
     @JoinColumn(name = "destination_city_id")
     private City destinationCity;
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }

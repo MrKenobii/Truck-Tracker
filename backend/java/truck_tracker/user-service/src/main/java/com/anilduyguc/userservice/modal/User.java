@@ -47,6 +47,9 @@ public class User implements UserDetails {
     })
     @JoinColumn(name = "role_id")
     private Role role;
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
+    private Truck truck;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -1,12 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
-import { GoogleMap, MarkerF, useLoadScript } from "@react-google-maps/api";
+import { useLocation } from "react-router-dom";
+import Geocode from "react-geocode";
+import {
+  GoogleMap,
+  MarkerF,
+  useLoadScript,
+  InfoWindowF,
+} from "@react-google-maps/api";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 
 //38.473619157092614, 27.135962991566277
 //41.41639660475681, 29.602251748436288
 //40.99893685519544, 28.857916572952533
 // https://dev.to/lauratoddcodes/using-the-google-maps-api-in-react-31ph
+const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
 const Map = () => {
   const fetchTrucks = async () => {
     let res = await axios.get("http://localhost:8080/api/v1/truck", {
@@ -21,13 +30,81 @@ const Map = () => {
     return res.data;
   };
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8",
+    googleMapsApiKey: apiKey,
   });
+  
+  const [selectedElement, setSelectedElement] = useState(null);
+  const [activeMarker, setActiveMarker] = useState(null);
+  const [showInfoWindow, setInfoWindowFlag] = useState(true);
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [trucks, setTrucks] = useState([]);
   const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  Geocode.setApiKey(apiKey);
+  Geocode.setLanguage("en");
+  Geocode.setRegion("TR");
+  const setAddress = (data) => {
+    return data.map((truck, index) => {
+      if ((truck.states == null || truck.district == null) && truck.latitude !== null) {
+        Geocode.fromLatLng(truck.latitude, truck.longitude).then(
+          (response) => {
+            console.log(response);
+
+            for (
+              var i = 0;
+              i < response.results[0].address_components.length;
+              i++
+            ) {
+              for (
+                var b = 0;
+                b < response.results[0].address_components[i].types.length;
+                b++
+              ) {
+                if (
+                  response.results[0].address_components[i].types[b] ===
+                  "administrative_area_level_2"
+                ) {
+                  var city = response.results[0].address_components[i];
+                  truck.formattedAddress = response.results[0].formatted_address;
+                  truck.district = city.long_name;
+                  //console.log(truck);
+                  break;
+                }
+              }
+            }
+
+            for (
+              var i = 0;
+              i < response.results[0].address_components.length;
+              i++
+            ) {
+              for (
+                var b = 0;
+                b < response.results[0].address_components[i].types.length;
+                b++
+              ) {
+                if (
+                  response.results[0].address_components[i].types[b] ===
+                  "administrative_area_level_1"
+                ) {
+                  var state = response.results[0].address_components[i];
+                  truck.states = state.long_name;
+                  //console.log(truck);
+                  break;
+                }
+              }
+            }
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      }
+      return truck;
+    });
+  };
   const center = useMemo(
     () => ({ lat: latitude, lng: longitude }),
     [longitude, latitude]
@@ -43,19 +120,21 @@ const Map = () => {
         console.log(latitude);
         fetchTrucks()
           .then((data) => {
-            console.log(data);
             setTrucks(data);
+            //console.log(data);
             setIsLoading(true);
-            toast.success("Trucks came!", {
-              position: toast.POSITION.BOTTOM_CENTER,
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
+            setTrucks(setAddress(data));
+            console.log("--------------------");
+            // toast.success("Trucks came!", {
+            //   position: toast.POSITION.BOTTOM_CENTER,
+            //   autoClose: 3000,
+            //   hideProgressBar: false,
+            //   closeOnClick: true,
+            //   pauseOnHover: true,
+            //   draggable: true,
+            //   progress: undefined,
+            //   theme: "dark",
+            // });
             setIsLoading(false);
           })
           .catch((error) => {
@@ -95,7 +174,7 @@ const Map = () => {
       }
     );
   }, []);
-  return isLoaded ? (
+  return isLoaded || isLoading ? (
     <GoogleMap
       mapContainerStyle={{ width: "100%", height: "100vh" }}
       center={{ lat: latitude, lng: longitude }}
@@ -113,6 +192,7 @@ const Map = () => {
       {trucks &&
         trucks.map((truck, index) => (
           <MarkerF
+            title={truck.licensePlate}
             key={index}
             position={{
               lat: Number(truck.latitude),
@@ -122,7 +202,45 @@ const Map = () => {
               url: "https://cdn-icons-png.flaticon.com/512/4047/4047296.png",
               scaledSize: new window.google.maps.Size(40, 40),
             }}
-          />
+            onClick={(props, marker) => {
+              setSelectedElement(truck);
+              setActiveMarker(marker);
+            }}
+          >
+            {selectedElement && truck === selectedElement ? (
+              <InfoWindowF
+                visible={showInfoWindow}
+                marker={activeMarker}
+                onCloseClick={() => {
+                  setSelectedElement(null);
+                }}
+              >
+                <div style={{ padding: 0, color: "black" }}>
+                  <h3>
+                    {truck.states}, {truck.district}
+                  </h3>
+                  <h4>
+                    Driver: {truck.user.name} {truck.user.lastName}
+                  </h4>
+                  <h5>
+                    {truck.licensePlate} to {truck.destinationCity.name} with
+                    status "{truck.status}"
+                  </h5>
+                  <h5>
+                    Carrying {truck.content}.{" "}
+                    <Link
+                      to={`truck/${truck.id}`}
+                      state={{
+                        truck,
+                      }}
+                    >
+                      more info
+                    </Link>
+                  </h5>
+                </div>
+              </InfoWindowF>
+            ) : null}
+          </MarkerF>
         ))}
       {cities &&
         cities.map((city, index) => (
@@ -136,11 +254,15 @@ const Map = () => {
               url: "https://cdn-icons-png.flaticon.com/512/3391/3391472.png",
               scaledSize: new window.google.maps.Size(40, 40),
             }}
-          />
+          >
+            {/* <InfoWindowF>
+                  <h4>{city.urgency}</h4>
+              </InfoWindowF> */}
+          </MarkerF>
         ))}
     </GoogleMap>
   ) : (
-    <></>
+    <>LAOADD</>
   );
 };
 export default Map;

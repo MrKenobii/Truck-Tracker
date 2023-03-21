@@ -55,4 +55,10 @@ public class TruckController {
     public ResponseEntity<Truck> setCurrentLocation(@PathVariable String id, @RequestBody Location location){
         return new ResponseEntity<>(truckService.setCurrentLocationByTruckId(id, location), HttpStatus.OK);
     }
+    @PutMapping("/{truckId}/user/{userId}")
+    public ResponseEntity<Truck> setDriver(@PathVariable String truckId, @PathVariable String userId){
+        System.out.println(truckId);
+        System.out.println(userId);
+        return new ResponseEntity<>(truckService.setDriver(truckId, userId), HttpStatus.OK);
+    }
 }
