@@ -1,5 +1,6 @@
 package com.anilduyguc.userservice.controller;
 
+import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Role;
 import com.anilduyguc.userservice.modal.User;
@@ -65,6 +66,11 @@ public class UserController {
     @GetMapping("/{id}/role")
     public ResponseEntity<Role> getRoleByUserId(@PathVariable String id){
         return new ResponseEntity<>(userService.getRoleByUserId(id), HttpStatus.OK);
+    }
+    @GetMapping("/{id}/notification")
+    public ResponseEntity<List<GetNotificationResponse>> getUserNotifications(@PathVariable String id){
+        System.out.println("HEREE");
+        return new ResponseEntity<>(userService.getUserNotifications(id), HttpStatus.OK);
     }
 
 }

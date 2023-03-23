@@ -1,6 +1,8 @@
 package com.anilduyguc.userservice.service.impl;
 
+import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
 import com.anilduyguc.userservice.modal.City;
+import com.anilduyguc.userservice.modal.Notification;
 import com.anilduyguc.userservice.modal.Role;
 import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.repository.UserRepository;
@@ -9,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -97,5 +100,29 @@ public class UserServiceImpl implements UserService {
         return userRepository.findUserByToken(token).orElseThrow(() -> {
             throw new RuntimeException("User with token: " + token + " was not found");
         });
+    }
+
+    @Override
+    public List<GetNotificationResponse> getUserNotifications(String id) {
+        System.out.println("ANAN:INA");
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            throw new RuntimeException("User with id: " + id + " was not found");
+        });
+        System.out.println(user.getName() + " " + user.getLastName());
+        List<GetNotificationResponse> getNotificationResponseList = new ArrayList<>();
+
+        if(user.getNotifications().size() > 0){
+            System.out.println(user.getNotifications().size());
+        } else {
+            System.out.println("EMPTYYYYYYYYY");
+        }
+        for(Notification notification: user.getNotifications()){
+            getNotificationResponseList.add(GetNotificationResponse.builder()
+                            .content(notification.getContent())
+                            .emergencyLevel(notification.getEmergencyLevel())
+                            .id(notification.getId())
+                    .build());
+        }
+        return getNotificationResponseList;
     }
 }

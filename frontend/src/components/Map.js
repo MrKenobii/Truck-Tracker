@@ -262,7 +262,7 @@ const Map = () => {
         ))}
     </GoogleMap>
   ) : (
-    <>LAOADD</>
+    <>Loading</>
   );
 };
 export default Map;

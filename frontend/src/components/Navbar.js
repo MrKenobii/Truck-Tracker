@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import EmailIcon from "@mui/icons-material/Email";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
@@ -12,8 +14,23 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+
+const navLinks = [
+  {
+    name: "Users",
+    path: "/users"
+  },
+  {
+    name: "Trucks",
+    path: "/trucks"
+  },
+  {
+    name: "Cities",
+    path: "/cities"
+  },
+]
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -23,11 +40,12 @@ const Navbar = () => {
   };
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
+  const [user, setUser] = useState({});
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
-  
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
@@ -36,8 +54,12 @@ const Navbar = () => {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-  const [user, setUser] = useState({});
-  const [anchorEl, setAnchorEl] = useState(null);
+  const notificationsClick = () => {
+    console.log("Notifications button clicked");
+  };
+  const messagesClick = () => {
+    console.log("Message button clicked");
+  };
   const open = Boolean(anchorEl);
   const handleClickUser = (event) => {
     setAnchorEl(event.currentTarget);
@@ -124,11 +146,25 @@ const Navbar = () => {
                 display: { xs: "block", md: "none" },
               }}
             >
-              {["Products", "Pricing", "Blog"].map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
+              {navLinks.map((page, index) => (
+                <Link to={page.path} style={{ textDecoration: "none", color: "inherit"}} >
+                <MenuItem key={index} onClick={handleCloseNavMenu}>
+                  <Typography textAlign="center">{page.name}</Typography>
                 </MenuItem>
+                </Link>
               ))}
+              {localStorage.getItem("token") && (
+                <div>
+                  <MenuItem onClick={handleCloseNavMenu}>
+                    {/* <NotificationsIcon /> */}
+                    <Typography textAlign="center">Notifications</Typography>
+                  </MenuItem>
+                  <MenuItem>
+                    {/* <EmailIcon /> */}
+                    <Typography textAlign="center">Messages</Typography>
+                  </MenuItem>
+                </div>
+              )}
             </Menu>
           </Box>
           <Typography
@@ -150,19 +186,54 @@ const Navbar = () => {
             TIR TAKİP SİSTEMİ
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {["Products", "Pricing", "Blog"].map((page) => (
+            {navLinks.map((page, index) => (
+              <Link to={page.path} style={{ textDecoration: "none", color: "inherit"}}>
               <Button
-                key={page}
+                key={index}
                 onClick={handleCloseNavMenu}
                 sx={{ my: 2, color: "white", display: "block" }}
               >
-                {page}
+                {page.name}
               </Button>
+
+              </Link>
             ))}
+            {localStorage.getItem("token") && (
+              <Box
+                sx={{
+                  justifyContent: "flex-end",
+                  flexGrow: 1,
+                  display: { xs: "none", md: "flex" },
+                }}
+              >
+                <Button
+                  onClick={notificationsClick}
+                  sx={{
+                    my: 2,
+                    color: "white",
+                    display: "block",
+                    borderRadius: 28,
+                  }}
+                >
+                  <NotificationsIcon />
+                </Button>
+                <Button
+                  onClick={messagesClick}
+                  sx={{
+                    my: 2,
+                    color: "white",
+                    display: "block",
+                    borderRadius: 28,
+                  }}
+                >
+                  <EmailIcon />
+                </Button>
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
-              {localStorage.getItem("token") ? (
+            {localStorage.getItem("token") ? (
               <div>
                 <Button
                   id="basic-button"
@@ -194,8 +265,6 @@ const Navbar = () => {
                 Login
               </Button>
             )}
-          
-            
           </Box>
         </Toolbar>
       </Container>

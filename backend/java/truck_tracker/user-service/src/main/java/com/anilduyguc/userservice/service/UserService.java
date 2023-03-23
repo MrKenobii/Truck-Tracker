@@ -1,6 +1,8 @@
 package com.anilduyguc.userservice.service;
 
+import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
 import com.anilduyguc.userservice.modal.City;
+import com.anilduyguc.userservice.modal.Notification;
 import com.anilduyguc.userservice.modal.Role;
 import com.anilduyguc.userservice.modal.User;
 
@@ -17,4 +19,6 @@ public interface UserService {
     User updateUser(String id, User user);
     void deleteUser(String id);
     User getUserByToken(String token);
+
+    List<GetNotificationResponse> getUserNotifications(String id);
 }

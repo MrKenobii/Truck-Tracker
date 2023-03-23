@@ -28,8 +28,14 @@ public class User implements UserDetails {
     private boolean isAccountActive;
     private String status;
     private String token;
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            })
+    @JoinTable(name = "user_notifications",
+            joinColumns = { @JoinColumn(name = "user_id") },
+            inverseJoinColumns = { @JoinColumn(name = "notification_id") })
     private List<Notification> notifications;
     @ManyToOne(cascade = {
             CascadeType.PERSIST,

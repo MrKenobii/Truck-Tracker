@@ -1,39 +1,54 @@
 import { createSlice } from "@reduxjs/toolkit";
+import  axios  from "axios";
 
 export const userSlice = createSlice({
   name: "User",
   initialState: {
     user: null,
-    listFavorites: []
+    notifications: [],
+    messages: []
   },
   reducers: {
     setUser: (state, action) => {
       if (action.payload === null) {
         localStorage.removeItem("token");
       } else {
+        console.log(state);
+        console.log(action.payload);
         if (action.payload.token) localStorage.setItem("token", action.payload.token);
       }
-
-      state.user = action.payload;
     },
-    setListFavorites: (state, action) => {
-      state.listFavorites = action.payload;
+    setNotifications: (state, action) => {
+      state.notifications = action.payload;
     },
-    removeFavorite: (state, action) => {
-      const { mediaId } = action.payload;
-      state.listFavorites = [...state.listFavorites].filter(e => e.mediaId.toString() !== mediaId.toString());
+    removeNotification: (state, action) => {
+      const { notificationId } = action.payload;
+      state.notifications = [...state.notifications].filter(e => e.notificationId.toString() !== notificationId.toString());
     },
-    addFavorite: (state, action) => {
-      state.listFavorites = [action.payload, ...state.listFavorites];
-    }
+    addNotification: (state, action) => {
+      state.notifications = [action.payload, ...state.notifications];
+    },
+    setMessage: (state, action) => {
+      state.messages = action.payload;
+    },
+    removeMessage: (state, action) => {
+      const { messageId } = action.payload;
+      state.messages = [...state.messages].filter(e => e.messageId.toString() !== messageId.toString());
+    },
+    addMessage: (state, action) => {
+      state.messages = [action.payload, ...state.messages];
+    },
   }
 });
 
 export const {
   setUser,
-  setListFavorites,
-  addFavorite,
-  removeFavorite
+  setNotifications,
+  addNotification,
+  removeNotification,
+  setMessage,
+  addMessage,
+  removeMessage
 } = userSlice.actions;
 
 export default userSlice.reducer;

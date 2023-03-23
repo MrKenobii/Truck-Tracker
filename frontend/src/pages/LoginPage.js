@@ -8,6 +8,7 @@ import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
+import { useDispatch } from "react-redux"; 
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { toast } from "react-toastify";
@@ -15,6 +16,7 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { setUser } from "../redux/features/userSlice";
 
 function Copyright(props) {
   return (
@@ -37,6 +39,7 @@ function Copyright(props) {
 const theme = createTheme();
 
 const LoginPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem("token");
