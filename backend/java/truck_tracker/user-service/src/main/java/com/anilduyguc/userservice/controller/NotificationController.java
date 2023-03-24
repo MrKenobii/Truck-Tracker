@@ -9,6 +9,7 @@ import com.anilduyguc.userservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,8 +41,9 @@ public class NotificationController {
     public ResponseEntity<SendNotificationResponse> sendNotificationToUsers(@RequestBody SendNotificationRequest notificationRequest){
         System.out.println("SENDDDD");
         return new ResponseEntity<>(notificationService.sendNotifications(notificationRequest), HttpStatus.OK);
-
     }
+
+
     @PutMapping("/{id}")
     public ResponseEntity<Notification> updateNotification(@PathVariable String id, @RequestBody Notification notification){
         return new ResponseEntity<>(notificationService.updateNotification(id, notification), HttpStatus.OK);
