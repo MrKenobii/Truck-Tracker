@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-
+import { v4 as uuidv4 } from 'uuid';
 const io = new Server({
   cors: {
     origin: "http://localhost:3000",
@@ -23,7 +23,7 @@ const getUser = (username) => {
   console.log("----------------------Online USERS GET USER----------------------")
   onlineUsers.map((user) => console.log(user.username.username));  
   return onlineUsers.find((user) => {
-    console.log(user.username.username);
+    //console.log(user.username.username);
     return user.username.username === username
   });
 };
@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
     addNewUser(username, socket.id);
   });
 
-  socket.on("sendNotification", ({ senderName, recievers , type }) => {
+  socket.on("sendNotification", ({ senderName, recievers, content }) => {
     console.log("----------------------SEND NOTIF----------------------" + recievers.length);
     recievers.map((reciverName) => {
       const receiver = getUser(reciverName.username);
@@ -43,7 +43,10 @@ io.on("connection", (socket) => {
         console.log(receiver.socketId);
         io.to(receiver.socketId).emit("getNotification", {
           senderName,
-          type,
+          notif: {
+            id: uuidv4(),
+            content
+          }
         });
       }
     });

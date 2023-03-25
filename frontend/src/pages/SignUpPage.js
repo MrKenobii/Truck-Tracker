@@ -19,6 +19,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
+import { BASE_URL } from "../constants/urls";
 
 function Copyright(props) {
   return (
@@ -47,15 +48,15 @@ const SignUpPage = () => {
   const [roles, setRoles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const fetchCities = async () => {
-    let res = await axios.get("http://localhost:8080/api/v1/city");
+    let res = await axios.get(`${BASE_URL}/city`);
     return res.data;
   };
   const fetchRoles = async () => {
-    let res = await axios.get("http://localhost:8080/api/v1/role");
+    let res = await axios.get(`${BASE_URL}/role`);
     return res.data;
   };
   const register = async (payload) => {
-    let res = await axios.post("http://localhost:8080/api/v1/auth/register", payload);
+    let res = await axios.post(`${BASE_URL}/auth/register`, payload);
     console.log(res);
     console.log(res.data);
     return res.data;

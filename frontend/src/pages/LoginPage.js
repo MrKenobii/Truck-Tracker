@@ -16,7 +16,7 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { setUser } from "../redux/features/userSlice";
+import { BASE_URL } from "../constants/urls";
 
 function Copyright(props) {
   return (
@@ -55,7 +55,7 @@ const LoginPage = () => {
       password: data.get("password"),
     });
     axios
-      .post("http://localhost:8080/api/v1/auth/authenticate", {
+      .post(`${BASE_URL}/auth/authenticate`, {
         email: data.get("email"),
         password: data.get("password"),
       })

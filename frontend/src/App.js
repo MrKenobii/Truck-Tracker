@@ -1,7 +1,7 @@
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { blue } from '@mui/material/colors';
+import { blue } from "@mui/material/colors";
 import { ToastContainer } from "react-toastify";
-import CssBaseline  from "@mui/material/CssBaseline";
+import CssBaseline from "@mui/material/CssBaseline";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import routes from "./routes/routes";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,7 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import Navbar from "./components/Navbar";
 import NotFoundPage from "./pages/NotFoundPage";
-
+import { socket, SocketContext } from "./context/socket";
 
 const App = () => {
   const theme = createTheme({
@@ -20,48 +20,41 @@ const App = () => {
   });
   console.log(routes);
   return (
-    <ThemeProvider theme={theme}>
-    {/* config toastify */}
-    <ToastContainer
-      position="bottom-left"
-      autoClose={5000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      pauseOnFocusLoss
-      pauseOnHover
-      theme={theme}
-    />
-    {/* mui reset css */}
-    <CssBaseline />
+    <SocketContext.Provider value={socket}>
+      <ThemeProvider theme={theme}>
+        {/* config toastify */}
+        <ToastContainer
+          position="bottom-left"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnFocusLoss
+          pauseOnHover
+          theme={theme}
+        />
+        {/* mui reset css */}
+        <CssBaseline />
 
-    {/* app routes */}
-    <BrowserRouter>
-    <Navbar />
-      <Routes>
-        {/* <Route path="/" element={<HomePage />} /> */}
-        {routes.map((route, index) => (
+        {/* app routes */}
+        <BrowserRouter>
+          <Navbar />
+          <Routes>
+            {/* <Route path="/" element={<HomePage />} /> */}
+            {routes.map((route, index) =>
               route.index ? (
-                <Route
-                  index
-                  key={index}
-                  element={route.element}
-                />
+                <Route index key={index} element={route.element} />
               ) : (
-                <Route
-                  path={route.path}
-                  key={index}
-                  element={route.element}
-                />
+                <Route path={route.path} key={index} element={route.element} />
               )
-            ))}
+            )}
             <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
-    {/* app routes */}
-  </ThemeProvider>
-
-  )
-}
+          </Routes>
+        </BrowserRouter>
+        {/* app routes */}
+      </ThemeProvider>
+    </SocketContext.Provider>
+  );
+};
 
 export default App;

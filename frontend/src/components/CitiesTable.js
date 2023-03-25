@@ -8,6 +8,7 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
+import { BASE_URL } from "../constants/urls";
 
 const columns = [
   { id: "id", label: "ID", minWidth: 150 },
@@ -34,7 +35,7 @@ const CitiesTable = () => {
   };
   useEffect(() => {
     const getCities = async (token) => {
-      return await axios.get("http://localhost:8080/api/v1/city", {
+      return await axios.get(`${BASE_URL}/city`, {
         headers: { Authorization: `Bearer ${token}` },
       });
     };

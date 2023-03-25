@@ -10,6 +10,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { BASE_URL } from "../constants/urls";
 
 //38.473619157092614, 27.135962991566277
 //41.41639660475681, 29.602251748436288
@@ -18,13 +19,13 @@ import { Link } from "react-router-dom";
 const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
 const Map = () => {
   const fetchTrucks = async () => {
-    let res = await axios.get("http://localhost:8080/api/v1/truck", {
+    let res = await axios.get(`${BASE_URL}/truck`, {
       headers: { Authorization: "Bearer " + localStorage.getItem("token") },
     });
     return res.data;
   };
   const fetchCities = async () => {
-    let res = await axios.get("http://localhost:8080/api/v1/city", {
+    let res = await axios.get(`${BASE_URL}/city`, {
       headers: { Authorization: "Bearer " + localStorage.getItem("token") },
     });
     return res.data;
@@ -110,8 +111,9 @@ const Map = () => {
     [longitude, latitude]
   );
   useEffect(() => {
-    console.log(center);
-    navigator.geolocation.getCurrentPosition(
+    if(localStorage.getItem("token")){
+      console.log(center);
+      navigator.geolocation.getCurrentPosition(
       (position) => {
         console.log(position);
         setLatitude(position.coords.latitude);
@@ -125,16 +127,6 @@ const Map = () => {
             setIsLoading(true);
             setTrucks(setAddress(data));
             console.log("--------------------");
-            // toast.success("Trucks came!", {
-            //   position: toast.POSITION.BOTTOM_CENTER,
-            //   autoClose: 3000,
-            //   hideProgressBar: false,
-            //   closeOnClick: true,
-            //   pauseOnHover: true,
-            //   draggable: true,
-            //   progress: undefined,
-            //   theme: "dark",
-            // });
             setIsLoading(false);
           })
           .catch((error) => {
@@ -172,7 +164,8 @@ const Map = () => {
       (positionError) => {
         console.log(positionError);
       }
-    );
+    ); 
+    }
   }, []);
   return isLoaded || isLoading ? (
     <GoogleMap

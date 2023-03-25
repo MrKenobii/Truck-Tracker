@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import AppBar from "@mui/material/AppBar";
+import {SocketContext} from '../context/socket';
 import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -14,9 +15,10 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
+import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
+import { BASE_URL } from "../constants/urls";
 import axios from "axios";
-import { io } from "socket.io-client";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -29,24 +31,23 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const navLinks = [
   {
-    name: "Users",
+    name: "Kişiler",
     path: "/users",
   },
   {
-    name: "Trucks",
+    name: "Tırlar",
     path: "/trucks",
   },
   {
-    name: "Cities",
+    name: "Şehirler",
     path: "/cities",
   },
 ];
 
 const Navbar = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const socket = useContext(SocketContext);
 
-  const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [openNot, setOpenNot] = useState(false);
   const [anchorElNav, setAnchorElNav] = useState(null);
@@ -71,13 +72,6 @@ const Navbar = () => {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-
-  const notificationsClick = () => {
-    console.log("Notifications button clicked");
-  };
-  const messagesClick = () => {
-    console.log("Message button clicked");
-  };
   const open = Boolean(anchorEl);
   const handleClickUser = (event) => {
     setAnchorEl(event.currentTarget);
@@ -90,41 +84,36 @@ const Navbar = () => {
     navigate("/login");
   };
   const fetchUser = async (token) => {
-    return await axios.get("http://localhost:8080/api/v1/user/token", {
+    return await axios.get(`${BASE_URL}/user/token`, {
       headers: { Authorization: "Bearer " + token },
     });
   };
-  const fetchUsers = async (token) => {
-    return await axios.get("http://localhost:8080/api/v1/user", {
-      headers: { Authorization: "Bearer " + token },
-    });
-  };
+ 
 
   useEffect(() => {
-    setSocket(io("http://localhost:8001"));
     const token = localStorage.getItem("token");
     if (token !== null) {
       fetchUser(token)
         .then((userData) => {
           console.log(userData.data);
           setUser(userData.data);
-          fetchUsers(token)
-            .then((usersData) => {
-              console.log(usersData.data);
-              console.log(userData.data.id);
-              const filteredUsers = usersData.data.filter(
-                (u) => u.id !== userData.data.id
-              );
-              setUsers(filteredUsers);
-            })
-            .catch((err) => console.log(err));
-        })
-        .catch((err) => console.log(err));
+        }).catch((err) => console.log(err));
     }
   }, []);
 
   useEffect(() => {
     socket?.on("getNotification", (data) => {
+      console.log(data);
+      toast.success(`${data.senderName.name + " " + data.senderName.lastName} ${data.notif.content}`, {
+              position: toast.POSITION.BOTTOM_CENTER,
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+            });
       console.log(data);
       setNotifications((prev) => [...prev, data]);
       console.log(notifications);
@@ -141,14 +130,6 @@ const Navbar = () => {
       fetchUser(token);
     }
   }, [localStorage.getItem("token")]);
-
-  const handleNotification = (type) => {
-    socket.emit("sendNotification", {
-      senderName: user,
-      recievers: users,
-      type,
-    });
-  };
 
   const handleRead = () => {
     setNotifications([]);
@@ -218,12 +199,16 @@ const Navbar = () => {
               ))}
               {localStorage.getItem("token") && (
                 <div>
-                  <MenuItem onClick={handleCloseNavMenu}>
-                    <Typography textAlign="center">Notifications</Typography>
-                  </MenuItem>
-                  <MenuItem>
-                    <Typography textAlign="center">Messages</Typography>
-                  </MenuItem>
+                  <Link to={`notifications/${user.id}`} state={{user, notifications }} style={{textDecoration: "none", color: "inherit"}}>
+                    <MenuItem onClick={handleCloseNavMenu}>
+                      <Typography textAlign="center">Notifications</Typography>
+                    </MenuItem>
+                  </Link>
+                  <Link to={`messages/${user.id}`} state={{ user }} style={{textDecoration: "none", color: "inherit"}}>
+                    <MenuItem>
+                      <Typography textAlign="center">Messages</Typography>
+                    </MenuItem>
+                  </Link>
                 </div>
               )}
             </Menu>
@@ -248,18 +233,20 @@ const Navbar = () => {
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {navLinks.map((page, index) => (
-              <Link
-                to={page.path}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <Button
-                  key={index}
-                  onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: "white", display: "block" }}
+              <Box sx={{marginY: "10px"}}>
+                <Link
+                  to={page.path}
+                  style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  {page.name}
-                </Button>
-              </Link>
+                  <Button
+                    key={index}
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, color: "white", display: "block" }}
+                  >
+                    {page.name}
+                  </Button>
+                </Link>
+              </Box>
             ))}
             {localStorage.getItem("token") && (
               <Box
@@ -269,29 +256,27 @@ const Navbar = () => {
                   display: { xs: "none", md: "flex" },
                 }}
               >
-                <Button
-                  onClick={() => handleNotification(1)}
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
-                >
-                  Send
-                </Button>
-                <IconButton aria-label="notification"  style={{ color: "white", borderRadius: "100%"}}>
-                  <StyledBadge badgeContent={notifications.length} color="primary">
-                    <NotificationsIcon />
-                  </StyledBadge>
-                </IconButton>
-                <IconButton aria-label="message"  style={{ color: "white"}}>
-                  <StyledBadge badgeContent={notifications.length} color="primary">
-                    <EmailIcon />
-                  </StyledBadge>
-                </IconButton>
+                
+                <Link to={`notifications/${user.id}`} style={{margin: "20px 10px"}} state={{ user, notifications}}>
+                  <IconButton aria-label="notification"  style={{ color: "white", borderRadius: "100%"}}>
+                    <StyledBadge badgeContent={notifications.length} color="primary">
+                      <NotificationsIcon />
+                    </StyledBadge>
+                  </IconButton>
+                </Link>
+                <Link to={`messages/${user.id}`} style={{margin: "20px 10px"}}>
+                  <IconButton aria-label="message"  style={{ color: "white"}}>
+                    <StyledBadge badgeContent={notifications.length} color="primary">
+                      <EmailIcon />
+                    </StyledBadge>
+                  </IconButton>
+                </Link>
                 
               </Box>
             )}
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, marginY: "5px" }}>
             {localStorage.getItem("token") ? (
               <div>
                 <Button
@@ -324,18 +309,6 @@ const Navbar = () => {
                 Login
               </Button>
             )}
-            {/* {user && (
-              <>
-                <Button
-                  onClick={() => handleNotification(1)}
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
-                >
-                  Send
-                </Button>
-              </>
-            )} */}
           </Box>
         </Toolbar>
       </Container>

@@ -39,7 +39,6 @@ public class NotificationController {
     }
     @PostMapping("/send")
     public ResponseEntity<SendNotificationResponse> sendNotificationToUsers(@RequestBody SendNotificationRequest notificationRequest){
-        System.out.println("SENDDDD");
         return new ResponseEntity<>(notificationService.sendNotifications(notificationRequest), HttpStatus.OK);
     }
 

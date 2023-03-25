@@ -8,6 +8,7 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
+import { BASE_URL } from "../constants/urls";
 
 const columns = [
   { id: "id", label: "ID", minWidth: 170 },
@@ -42,7 +43,7 @@ const TrucksTable = () => {
   };
   useEffect(() => {
     const getTrucks = async (token) => {
-      return await axios.get("http://localhost:8080/api/v1/truck", {
+      return await axios.get(`${BASE_URL}/truck`, {
         headers: { Authorization: `Bearer ${token}` },
       });
     };

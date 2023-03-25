@@ -1,6 +1,8 @@
 import CitiesPage from "../pages/CitiesPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
+import MessagesPage from "../pages/MessagesPage";
+import NotificationsPage from "../pages/NotificationsPage";
 import SignUpPage from "../pages/SignUpPage";
 import TruckDetail from "../pages/TruckDetail";
 import TrucksPage from "../pages/TrucksPage";
@@ -46,6 +48,16 @@ export const routesGen = {
         path: "/users",
         element: <UsersPage users />,
         state: "users"
+    },
+    {
+        path: "/notifications/:id",
+        element: <NotificationsPage user notifications socket />,
+        state: "notifications"
+    },
+    {
+        path: "/messages/:id",
+        element: <MessagesPage user messages socket />,
+        state: "messages"
     },
 
 ];
