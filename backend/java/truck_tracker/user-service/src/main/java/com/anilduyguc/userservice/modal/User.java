@@ -56,6 +56,9 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user")
     @JsonIgnore
     private Truck truck;
+    @OneToMany(mappedBy = "senderName", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Notification> senderNotification;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

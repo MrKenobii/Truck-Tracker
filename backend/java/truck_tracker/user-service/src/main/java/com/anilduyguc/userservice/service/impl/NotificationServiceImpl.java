@@ -1,5 +1,7 @@
 package com.anilduyguc.userservice.service.impl;
 
+import com.anilduyguc.userservice.dto.notification.SaveNotificationRequest;
+import com.anilduyguc.userservice.dto.notification.SaveNotificationResponse;
 import com.anilduyguc.userservice.dto.notification.SendNotificationRequest;
 import com.anilduyguc.userservice.dto.notification.SendNotificationResponse;
 import com.anilduyguc.userservice.dto.user.UserRequest;
@@ -63,7 +65,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public SendNotificationResponse sendNotifications(SendNotificationRequest notificationRequest) {
+    public SendNotificationResponse sendNotifications(String id, SendNotificationRequest notificationRequest) {
+        User sender = userRepository.findById(id).orElseThrow(() -> {
+            throw new RuntimeException("No user found with id " + id);
+        });
         List<User> userList = new ArrayList<>();
         String notificationId = UUID.randomUUID().toString();
         for(UserRequest u: notificationRequest.getUsers()){
@@ -75,6 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .content(notificationRequest.getContent())
                     .id(notificationId)
                     .emergencyLevel(notificationRequest.getEmergencyLevel())
+                    .senderName(sender)
                     .build());
             user.setNotifications(notifications);
             userList.add(user);
@@ -98,6 +104,37 @@ public class NotificationServiceImpl implements NotificationService {
             System.out.println("NO SIZE");
         }
         return notification.getUsers();
+    }
+
+    @Override
+    public SaveNotificationResponse saveNotification(String id, SaveNotificationRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            throw new RuntimeException("No user found with id " + id);
+        });
+        User sender = userRepository.findById(request.getSender().getId()).orElseThrow(() -> {
+            throw new RuntimeException("No user found with id " + request.getSender().getId());
+        });
+        List<User> userList = new ArrayList<>();
+
+        List<Notification> notifications = user.getNotifications();
+        Notification notification= Notification.builder()
+                .content(request.getContent())
+                .id(request.getId())
+                .emergencyLevel(request.getEmergencyLevel())
+                .senderName(sender)
+                .build();
+        notifications.add(notification);
+        user.setNotifications(notifications);
+        userList.add(user);
+        userRepository.save(user);
+
+        return SaveNotificationResponse.builder()
+                .sender(sender)
+                .emergencyLevel(notification.getEmergencyLevel())
+                .content(notification.getContent())
+                .id(notification.getId())
+                .message("Success")
+                .build();
     }
 
 

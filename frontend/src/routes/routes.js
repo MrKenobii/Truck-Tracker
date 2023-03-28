@@ -8,11 +8,7 @@ import TruckDetail from "../pages/TruckDetail";
 import TrucksPage from "../pages/TrucksPage";
 import UsersPage from "../pages/UsersPage";
 
-export const routesGen = {
-    home: "/",
-    login: "/login",
-    singin: "/signup"
-  };
+
   const routes = [
     {
         index: true,

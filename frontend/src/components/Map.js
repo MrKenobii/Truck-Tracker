@@ -11,29 +11,15 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../constants/urls";
+import LoadingComponent from "./LoadingComponent";
 
 //38.473619157092614, 27.135962991566277
 //41.41639660475681, 29.602251748436288
 //40.99893685519544, 28.857916572952533
 // https://dev.to/lauratoddcodes/using-the-google-maps-api-in-react-31ph
+const delay = 5 * 30;
 const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
 const Map = () => {
-  const fetchTrucks = async () => {
-    let res = await axios.get(`${BASE_URL}/truck`, {
-      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
-    });
-    return res.data;
-  };
-  const fetchCities = async () => {
-    let res = await axios.get(`${BASE_URL}/city`, {
-      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
-    });
-    return res.data;
-  };
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: apiKey,
-  });
-  
   const [selectedElement, setSelectedElement] = useState(null);
   const [activeMarker, setActiveMarker] = useState(null);
   const [showInfoWindow, setInfoWindowFlag] = useState(true);
@@ -42,13 +28,35 @@ const Map = () => {
   const [trucks, setTrucks] = useState([]);
   const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [show, setShow] = useState(false);
+
+  const fetchTrucks = async () => {
+    setIsLoading(false);
+    let res = await axios.get(`${BASE_URL}/truck`, {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+    });
+    return res.data;
+  };
+  const fetchCities = async () => {
+    setIsLoading(false);
+    let res = await axios.get(`${BASE_URL}/city`, {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+    });
+    return res.data;
+  };
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: apiKey,
+  });
 
   Geocode.setApiKey(apiKey);
   Geocode.setLanguage("en");
   Geocode.setRegion("TR");
   const setAddress = (data) => {
     return data.map((truck, index) => {
-      if ((truck.states == null || truck.district == null) && truck.latitude !== null) {
+      if (
+        (truck.states == null || truck.district == null) &&
+        truck.latitude !== null
+      ) {
         Geocode.fromLatLng(truck.latitude, truck.longitude).then(
           (response) => {
             console.log(response);
@@ -68,7 +76,8 @@ const Map = () => {
                   "administrative_area_level_2"
                 ) {
                   var city = response.results[0].address_components[i];
-                  truck.formattedAddress = response.results[0].formatted_address;
+                  truck.formattedAddress =
+                    response.results[0].formatted_address;
                   truck.district = city.long_name;
                   //console.log(truck);
                   break;
@@ -111,62 +120,73 @@ const Map = () => {
     [longitude, latitude]
   );
   useEffect(() => {
-    if(localStorage.getItem("token")){
-      console.log(center);
-      navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log(position);
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
-        console.log(longitude);
-        console.log(latitude);
-        fetchTrucks()
-          .then((data) => {
-            setTrucks(data);
-            //console.log(data);
-            setIsLoading(true);
-            setTrucks(setAddress(data));
-            console.log("--------------------");
-            setIsLoading(false);
-          })
-          .catch((error) => {
-            toast.error("Something went wrong !", {
-              position: toast.POSITION.BOTTOM_CENTER,
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
-          });
-        fetchCities()
-          .then((data) => {
-            data = data.filter((city) => {
-              return city.urgency >= 4;
-            });
-            setCities(data);
-          })
-          .catch((error) => {
-            toast.error("Something went wrong !", {
-              position: toast.POSITION.BOTTOM_CENTER,
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
-          });
-      },
-      (positionError) => {
-        console.log(positionError);
+    const doWork = () => {
+      console.log("EVERY ???");
+      if (localStorage.getItem("token")) {
+        console.log(center);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log(position);
+            setLatitude(position.coords.latitude);
+            setLongitude(position.coords.longitude);
+            console.log(longitude);
+            console.log(latitude);
+            fetchTrucks()
+              .then((data) => {
+                setTrucks(data);
+                //console.log(data);
+                setTrucks(setAddress(data));
+                console.log("--------------------");
+                setIsLoading(false);
+              })
+              .catch((error) => {
+                toast.error("Something went wrong !", {
+                  position: toast.POSITION.BOTTOM_CENTER,
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "dark",
+                });
+              });
+
+            fetchCities()
+              .then((data) => {
+                data = data.filter((city) => {
+                  return city.urgency >= 4;
+                });
+                setCities(data);
+                setIsLoading(false);
+              })
+              .catch((error) => {
+                toast.error("Something went wrong !", {
+                  position: toast.POSITION.BOTTOM_CENTER,
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "dark",
+                });
+              });
+          },
+          (positionError) => {
+            console.log(positionError);
+          }
+        );
       }
-    ); 
-    }
-  }, []);
+    };
+    doWork();
+    const interval = setInterval(() => {
+      doWork();
+    }, 1000 * 60);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [localStorage.getItem("token")]);
   return isLoaded || isLoading ? (
     <GoogleMap
       mapContainerStyle={{ width: "100%", height: "100vh" }}
@@ -255,7 +275,7 @@ const Map = () => {
         ))}
     </GoogleMap>
   ) : (
-    <>Loading</>
+    <LoadingComponent />
   );
 };
 export default Map;

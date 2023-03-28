@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import  axios  from "axios";
+
 
 export const userSlice = createSlice({
   name: "User",
@@ -13,9 +13,12 @@ export const userSlice = createSlice({
       if (action.payload === null) {
         localStorage.removeItem("token");
       } else {
-        console.log(state);
         console.log(action.payload);
-        if (action.payload.token) localStorage.setItem("token", action.payload.token);
+        if (action.payload.token.token) {
+          localStorage.setItem("token", action.payload.token.token);
+        } 
+        state.user = action.payload.user;
+        console.log(state.user);
       }
     },
     setNotifications: (state, action) => {

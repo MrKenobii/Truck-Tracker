@@ -20,6 +20,14 @@ public class Notification {
     private String id;
     private String content;
     private Integer emergencyLevel;
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE,
+            CascadeType.DETACH,
+            CascadeType.REFRESH
+    })
+    @JoinColumn(name = "user_id")
+    private User senderName;
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,

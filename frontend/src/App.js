@@ -2,7 +2,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { blue } from "@mui/material/colors";
 import { ToastContainer } from "react-toastify";
 import CssBaseline from "@mui/material/CssBaseline";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import routes from "./routes/routes";
 import "react-toastify/dist/ReactToastify.css";
 import "swiper/css";
@@ -48,6 +48,7 @@ const App = () => {
                 <Route path={route.path} key={index} element={route.element} />
               )
             )}
+            <Route path="/home" element={<Navigate to={"/"} />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>

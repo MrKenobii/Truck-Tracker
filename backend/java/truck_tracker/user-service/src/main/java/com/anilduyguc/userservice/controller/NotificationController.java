@@ -1,6 +1,8 @@
 package com.anilduyguc.userservice.controller;
 
 
+import com.anilduyguc.userservice.dto.notification.SaveNotificationRequest;
+import com.anilduyguc.userservice.dto.notification.SaveNotificationResponse;
 import com.anilduyguc.userservice.dto.notification.SendNotificationRequest;
 import com.anilduyguc.userservice.dto.notification.SendNotificationResponse;
 import com.anilduyguc.userservice.modal.Notification;
@@ -37,11 +39,14 @@ public class NotificationController {
     public ResponseEntity<Notification> createNotification(@RequestBody Notification notification){
         return new ResponseEntity<>(notificationService.createNotification(notification), HttpStatus.CREATED);
     }
-    @PostMapping("/send")
-    public ResponseEntity<SendNotificationResponse> sendNotificationToUsers(@RequestBody SendNotificationRequest notificationRequest){
-        return new ResponseEntity<>(notificationService.sendNotifications(notificationRequest), HttpStatus.OK);
+    @PostMapping("/{id}/send")
+    public ResponseEntity<SendNotificationResponse> sendNotificationToUsers(@PathVariable String id, @RequestBody SendNotificationRequest notificationRequest){
+        return new ResponseEntity<>(notificationService.sendNotifications(id, notificationRequest), HttpStatus.OK);
     }
-
+    @PostMapping("/{id}/save")
+    public ResponseEntity<SaveNotificationResponse> saveNotification(@PathVariable String id, @RequestBody SaveNotificationRequest request){
+        return new ResponseEntity<>(notificationService.saveNotification(id, request), HttpStatus.OK);
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<Notification> updateNotification(@PathVariable String id, @RequestBody Notification notification){

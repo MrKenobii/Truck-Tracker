@@ -8,7 +8,7 @@ import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import { useDispatch } from "react-redux"; 
+import { useDispatch, useSelector } from 'react-redux'
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { toast } from "react-toastify";
@@ -16,6 +16,7 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { setUser } from "../redux/features/userSlice";
 import { BASE_URL } from "../constants/urls";
 
 function Copyright(props) {
@@ -41,6 +42,11 @@ const theme = createTheme();
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const fetchUser = async (token) => {
+    return await axios.get(`${BASE_URL}/user/token`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+  }
   useEffect(() => {
     const token = localStorage.getItem("token");
     if(token){
@@ -61,7 +67,23 @@ const LoginPage = () => {
       })
       .then(function (response) {
         console.log(response);
-        toast.success("Successfully logged in !", {
+        if(response.status === 200){
+          //dispatch(setUser(response.data));
+          fetchUser(response.data.token).then((userResponse) => {
+            if(userResponse.status === 200){
+              console.log(userResponse.data);
+              const payload = {
+                token: response.data,
+                user: userResponse.data
+              }
+              dispatch(setUser(payload));
+              navigate("/");
+            }
+          }).catch(err => {
+            console.log(err);
+          });
+        }
+        toast.success("Giriş Başarılı !", {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
             hideProgressBar: false,
@@ -71,8 +93,7 @@ const LoginPage = () => {
             progress: undefined,
             theme: "dark",
         });
-        localStorage.setItem("token", response.data.token);
-        navigate("/");
+        
       })
       .catch(function (error) {
         console.log(error);
