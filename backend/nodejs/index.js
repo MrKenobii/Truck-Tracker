@@ -67,7 +67,7 @@ io.on("connection", (socket) => {
     console.log("----------------------SEND NOTIF----------------------" + recievers.length);
     recievers.map((reciverName) => {
       const receiver = getUser(reciverName.username);
-      if(receiver){
+      if(receiver && (reciverName.role.name === "ADMIN" || reciverName.role.name === "POLICE_STATION")){
         console.log("Sender: " + senderName.username);
         console.log("Receiver: " + reciverName.username);
         console.log(receiver.socketId);

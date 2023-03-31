@@ -1,8 +1,7 @@
 package com.anilduyguc.userservice.auth;
 
-import com.anilduyguc.userservice.dto.auth.AuthenticationRequest;
-import com.anilduyguc.userservice.dto.auth.AuthenticationResponse;
-import com.anilduyguc.userservice.dto.auth.RegisterRequest;
+import com.anilduyguc.userservice.dto.auth.*;
+import com.anilduyguc.userservice.modal.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,4 +21,21 @@ public class AuthController {
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest){
         return new ResponseEntity<>(authService.authenticate(authenticationRequest), HttpStatus.OK);
     }
+    @PostMapping("/logout/{id}")
+    public ResponseEntity<LogoutResponse> logout(@PathVariable String id){
+        return new ResponseEntity<>(authService.logout(id), HttpStatus.OK);
+    }
+    @PutMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest){
+        return new ResponseEntity<ForgotPasswordResponse>(authService.forgotPassword(forgotPasswordRequest), HttpStatus.OK);
+    }
+    @PutMapping("/update-password/{userId}")
+    public ResponseEntity<UpdatePasswordResponse> forgotPassword(@RequestBody UpdatePasswordRequest updatePasswordRequest, @PathVariable String userId){
+        return new ResponseEntity<UpdatePasswordResponse>(authService.updatePassword(updatePasswordRequest, userId), HttpStatus.OK);
+    }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable String userId){
+        return new ResponseEntity<>(authService.getUserById(userId), HttpStatus.OK);
+    }
 }
+

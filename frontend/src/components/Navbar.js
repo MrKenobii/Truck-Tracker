@@ -60,6 +60,47 @@ const Navbar = () => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const isWhite = (color) => {
+    // fiddle this value to set stricter rules for what is white.
+    // if (color.match(/^rgb/)) {
+    //   // If HEX --> store the red, green, blue values in separate variables
+    //   color = color.match(
+    //     /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/
+    //   );
+
+    //   var r = color[1];
+    //   var g = color[2];
+    //   var b = color[3];
+    // } else {
+    //   // If RGB --> Convert it to HEX: http://gist.github.com/983661
+    //   color = +(
+    //     "0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&")
+    //   );
+
+    //   var r = color >> 16;
+    //   var g = (color >> 8) & 255;
+    //   var b = color & 255;
+    // }
+
+    // // HSP equation from http://alienryderflex.com/hsp.html
+    // var hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+
+    // // Using the HSP value, determine whether the color is light or dark
+    // if (hsp > 127.5) {
+    //   return true;
+    // } else {
+    //   return false;
+    // }
+    const hex = color.replace('#', '');
+    const c_r = parseInt(hex.substring(0, 0 + 2), 16);
+    const c_g = parseInt(hex.substring(2, 2 + 2), 16);
+    const c_b = parseInt(hex.substring(4, 4 + 2), 16);
+    const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+    return brightness > 155;
+  };
+  // use this function like this. supply it a colour code with a # in front of it
+  isWhite("#FFFFFF");
 
   const stringToColour = function (str) {
     var hash = 0;
@@ -73,7 +114,9 @@ const Navbar = () => {
     }
     return colour;
   };
-
+  const handleProfile = () => {
+    navigate(`/profile/${user.id}`);
+  };
   const handleClick = (e) => {
     setAnchorElUser(e.currentTarget);
     navigate("/login");
@@ -89,7 +132,6 @@ const Navbar = () => {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-  const open = Boolean(anchorEl);
   const handleClickUser = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -97,9 +139,12 @@ const Navbar = () => {
     setAnchorEl(null);
   };
   const logout = () => {
+    axios.post(`${BASE_URL}/auth/logout/${user.id}`).then((data) => {
+      console.log(data);
+    });
     localStorage.removeItem("token");
-    localStorage.removeItem("persist:root");
     dispatch(setUser(null));
+    localStorage.removeItem("persist:root");
     navigate("/login");
   };
 
@@ -117,18 +162,23 @@ const Navbar = () => {
     console.log(notifications);
   }, []);
   useEffect(() => {
-    console.log("DEgıstı");
+    if (!user) {
+      console.log("YOQQ");
+    }
   }, [user]);
 
   useEffect(() => {
     socket?.on("getNotification", (data) => {
       console.log(data);
       toast.success(
-        `${data.senderName.name + " " + data.senderName.lastName} ${
-          data.notif.content
-        }`,
+        `${
+          data.senderName.name +
+          " " +
+          data.senderName.lastName +
+          " adlı kişiden "
+        } ${data.notif.content}`,
         {
-          position: toast.POSITION.BOTTOM_CENTER,
+          position: toast.POSITION.TOP_RIGHT,
           autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: true,
@@ -335,6 +385,11 @@ const Navbar = () => {
                       backgroundColor: stringToColour(
                         user ? user.name + " " + user.lastName : "profile"
                       ),
+                      color: isWhite(
+                        user ? user.name + " " + user.lastName : "profile"
+                      )
+                        ? "black"
+                        : "white",
                     }}
                     variant="contained"
                     aria-controls={open ? "basic-menu" : undefined}
@@ -353,9 +408,9 @@ const Navbar = () => {
                       "aria-labelledby": "basic-button",
                     }}
                   >
-                    <MenuItem onClick={handleClose}>Profile</MenuItem>
-                    <MenuItem onClick={handleClose}>My account</MenuItem>
-                    <MenuItem onClick={logout}>Logout</MenuItem>
+                    <MenuItem onClick={handleProfile}>Profil</MenuItem>
+                    {/* <MenuItem onClick={handleClose}>Hesabım</MenuItem> */}
+                    <MenuItem onClick={logout}>Çıkış yap</MenuItem>
                   </Menu>
                 </div>
               ) : (
@@ -364,7 +419,7 @@ const Navbar = () => {
                   variant="contained"
                   onClick={handleClick}
                 >
-                  Login
+                  Giriş yap
                 </Button>
               )}
             </Box>

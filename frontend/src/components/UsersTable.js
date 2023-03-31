@@ -37,7 +37,7 @@ const UsersTable = () => {
   };
   useEffect(() => {
       const getUsers = async (token) => {
-        return await axios.get(`${BASE_URL}/api/v1/user`, {
+        return await axios.get(`${BASE_URL}/user`, {
             headers: { Authorization: `Bearer ${token}` },
         });
       }

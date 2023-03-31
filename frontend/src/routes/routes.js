@@ -1,11 +1,14 @@
 import CitiesPage from "../pages/CitiesPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import MessagesPage from "../pages/MessagesPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import ProfilePage from "../pages/ProfilePage";
 import SignUpPage from "../pages/SignUpPage";
 import TruckDetail from "../pages/TruckDetail";
 import TrucksPage from "../pages/TrucksPage";
+import UpdatePasswordPage from "../pages/UpdatePasswordPage";
 import UsersPage from "../pages/UsersPage";
 
 
@@ -54,6 +57,21 @@ import UsersPage from "../pages/UsersPage";
         path: "/messages/:id",
         element: <MessagesPage user messages socket />,
         state: "messages"
+    },
+    {
+        path: "/profile/:userId",
+        element: <ProfilePage user />,
+        state: "profile-page"
+    },
+    {
+        path: "/forgot-password",
+        element: <ForgotPasswordPage user />,
+        state: "forgot-password"
+    },
+    {
+        path: "/update-password/:userId",
+        element: <UpdatePasswordPage />,
+        state: "update-password"
     },
 
 ];

@@ -18,7 +18,6 @@ const App = () => {
       danger: blue[500],
     },
   });
-  console.log(routes);
   return (
     <SocketContext.Provider value={socket}>
       <ThemeProvider theme={theme}>
@@ -49,6 +48,7 @@ const App = () => {
               )
             )}
             <Route path="/home" element={<Navigate to={"/"} />} />
+            <Route path="/not-found" element={<NotFoundPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>

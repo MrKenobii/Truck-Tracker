@@ -40,6 +40,7 @@ function Copyright(props) {
 const theme = createTheme();
 
 const LoginPage = () => {
+  const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const fetchUser = async (token) => {
@@ -48,6 +49,7 @@ const LoginPage = () => {
     });
   }
   useEffect(() => {
+    console.log(user);
     const token = localStorage.getItem("token");
     if(token){
       navigate("/");
@@ -67,23 +69,32 @@ const LoginPage = () => {
       })
       .then(function (response) {
         console.log(response);
-        if(response.status === 200){
+        if(response.status === 200 && response.data.token){
           //dispatch(setUser(response.data));
           fetchUser(response.data.token).then((userResponse) => {
             if(userResponse.status === 200){
               console.log(userResponse.data);
-              const payload = {
+              dispatch(setUser({
                 token: response.data,
                 user: userResponse.data
-              }
-              dispatch(setUser(payload));
+              }));
               navigate("/");
             }
           }).catch(err => {
             console.log(err);
           });
-        }
-        toast.success("Giriş Başarılı !", {
+          toast.success("Giriş Başarılı !", {
+              position: toast.POSITION.BOTTOM_CENTER,
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+          });
+        } else {
+          toast.error("Giriş hatalı. Tekrar deneyiniz !", {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
             hideProgressBar: false,
@@ -92,12 +103,13 @@ const LoginPage = () => {
             draggable: true,
             progress: undefined,
             theme: "dark",
-        });
+          });
+        }
         
       })
       .catch(function (error) {
         console.log(error);
-        toast.error("Error with login !", {
+        toast.error("Giriş hatalı. Tekrar deneyiniz !", {
           position: toast.POSITION.BOTTOM_CENTER,
           autoClose: 3000,
           hideProgressBar: false,
@@ -125,7 +137,7 @@ const LoginPage = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Giriş Yap
           </Typography>
           <Box
             component="form"
@@ -138,7 +150,7 @@ const LoginPage = () => {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="E-mail"
               name="email"
               autoComplete="email"
               autoFocus
@@ -148,7 +160,7 @@ const LoginPage = () => {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Şifre"
               type="password"
               id="password"
               autoComplete="current-password"
@@ -167,13 +179,13 @@ const LoginPage = () => {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
+                <Link href="/forgot-password" variant="body2">
+                  Şifrenizi mi unuttunuz ?
                 </Link>
               </Grid>
               <Grid item>
                 <Link href="/signup" variant="body2">
-                  {"Don't have an account? Sign Up"}
+                  {"Hesabınız yok mu? Kayıt ol"}
                 </Link>
               </Grid>
             </Grid>

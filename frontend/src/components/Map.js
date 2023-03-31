@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../constants/urls";
 import LoadingComponent from "./LoadingComponent";
+import { useSelector } from "react-redux";
 
 //38.473619157092614, 27.135962991566277
 //41.41639660475681, 29.602251748436288
@@ -20,6 +21,7 @@ import LoadingComponent from "./LoadingComponent";
 const delay = 5 * 30;
 const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
 const Map = () => {
+  const { user } = useSelector((state) => state.user);
   const [selectedElement, setSelectedElement] = useState(null);
   const [activeMarker, setActiveMarker] = useState(null);
   const [showInfoWindow, setInfoWindowFlag] = useState(true);
@@ -122,7 +124,7 @@ const Map = () => {
   useEffect(() => {
     const doWork = () => {
       console.log("EVERY ???");
-      if (localStorage.getItem("token")) {
+      if (user !== null && localStorage.getItem("token")) {
         console.log(center);
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -140,7 +142,7 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                toast.error("Something went wrong !", {
+                toast.error("Hata !", {
                   position: toast.POSITION.BOTTOM_CENTER,
                   autoClose: 3000,
                   hideProgressBar: false,
@@ -161,7 +163,7 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                toast.error("Something went wrong !", {
+                toast.error("Hata !", {
                   position: toast.POSITION.BOTTOM_CENTER,
                   autoClose: 3000,
                   hideProgressBar: false,
@@ -195,13 +197,60 @@ const Map = () => {
       // onLoad={onLoad}
       // onUnmount={onUnmount}
     >
-      <MarkerF
-        position={center}
-        icon={{
-          url: "https://cdn-icons-png.flaticon.com/512/25/25694.png",
-          scaledSize: new window.google.maps.Size(20, 20),
-        }}
-      />
+      {user.role.name === "POLICE" && (
+                <MarkerF
+                position={center}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/386/386437.png",
+                  scaledSize: new window.google.maps.Size(40, 40),
+                }}
+              />
+      )}
+      {user.role.name === "POLICE_STATION" && (
+                <MarkerF
+                position={center}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/3485/3485494.png",
+                  scaledSize: new window.google.maps.Size(20, 20),
+                }}
+              />
+      )}
+      {user.role.name === "GOVERNMENT" && (
+                <MarkerF
+                position={center}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/3530/3530558.png",
+                  scaledSize: new window.google.maps.Size(20, 20),
+                }}
+              />
+      )}
+      {user.role.name === "TRUCK_DRIVER" && (
+                <MarkerF
+                position={center}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/4047/4047296.png",
+                  scaledSize: new window.google.maps.Size(40, 40),
+                }}
+              />
+      )}
+      {user.role.name === "ADMIN" && (
+                <MarkerF
+                position={center}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/2206/2206368.png",
+                  scaledSize: new window.google.maps.Size(40, 40),
+                }}
+              />
+      )}
+      {user.role.name === "NORMAL" && (
+                <MarkerF
+                position={center}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/25/25694.png",
+                  scaledSize: new window.google.maps.Size(20, 20),
+                }}
+              />
+      )}
       {trucks &&
         trucks.map((truck, index) => (
           <MarkerF
@@ -233,21 +282,21 @@ const Map = () => {
                     {truck.states}, {truck.district}
                   </h3>
                   <h4>
-                    Driver: {truck.user.name} {truck.user.lastName}
+                    Şöfor: {truck.user.name} {truck.user.lastName}
                   </h4>
                   <h5>
-                    {truck.licensePlate} to {truck.destinationCity.name} with
-                    status "{truck.status}"
+                    {truck.licensePlate} plakalı tır  {truck.destinationCity.name} şehrinden yola çıktı.
+                    Tırın durumu "{truck.status}"
                   </h5>
                   <h5>
-                    Carrying {truck.content}.{" "}
+                     {truck.content} taşıyor {". "}
                     <Link
                       to={`truck/${truck.id}`}
                       state={{
                         truck,
                       }}
                     >
-                      more info
+                      daha fazla bilgi için
                     </Link>
                   </h5>
                 </div>

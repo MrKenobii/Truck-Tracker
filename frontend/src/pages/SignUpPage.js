@@ -228,7 +228,7 @@ const SignUpPage = () => {
                 <LockOutlinedIcon />
               </Avatar>
               <Typography component="h1" variant="h5">
-                Sign up
+                Kayıt Ol
               </Typography>
               <Box
                 component="form"
@@ -244,7 +244,7 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       id="firstName"
-                      label="First Name"
+                      label="Ad"
                       autoFocus
                     />
                   </Grid>
@@ -253,7 +253,7 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       id="lastName"
-                      label="Last Name"
+                      label="Soyad"
                       name="lastName"
                       autoComplete="family-name"
                     />
@@ -263,7 +263,7 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       id="email"
-                      label="Email Address"
+                      label="E-mail"
                       name="email"
                       autoComplete="email"
                     />
@@ -273,19 +273,19 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       id="phone"
-                      label="Phone Number"
+                      label="Telefon numarası"
                       name="phone"
                       autoComplete="phone"
                     />
                   </Grid>
                   <Grid item xs={6} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="select-label-city">City</InputLabel>
+                      <InputLabel id="select-label-city">Şehir</InputLabel>
                       <Select
                         labelId="select-label-city"
                         id="select-city"
                         value={city}
-                        label="City"
+                        label="Şehir"
                         onChange={handleChangeCity}
                       >
                         {cities.map((city, index) => (
@@ -298,12 +298,12 @@ const SignUpPage = () => {
                   </Grid>
                   <Grid item xs={6} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="select-label-role">Role</InputLabel>
+                      <InputLabel id="select-label-role">Rol</InputLabel>
                       <Select
                         labelId="select-label-role"
                         id="select-role"
                         value={role}
-                        label="Role"
+                        label="Rol"
                         onChange={handleChangeRole}
                       >
                         {roles.map((role, index) => (
@@ -320,7 +320,7 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       name="password"
-                      label="Password"
+                      label="Şifre"
                       type="password"
                       id="password"
                       autoComplete="new-password"
@@ -331,20 +331,20 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       name="confirmPassword"
-                      label="Confirm Password"
+                      label="Şifre Tekrar"
                       type="password"
                       id="confirmPassword"
                       autoComplete="confirm-password"
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <FormControlLabel
                       control={
                         <Checkbox value="allowExtraEmails" color="primary" />
                       }
                       label="I want to receive inspiration, marketing promotions and updates via email."
                     />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
                 <Button
                   type="submit"
@@ -352,12 +352,12 @@ const SignUpPage = () => {
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
                 >
-                  Sign Up
+                  Kayıt ol
                 </Button>
                 <Grid container justifyContent="flex-end">
                   <Grid item>
                     <Link href="/login" variant="body2">
-                      Already have an account? Sign in
+                      Zaten hesabın var mı? Giriş yap
                     </Link>
                   </Grid>
                 </Grid>
