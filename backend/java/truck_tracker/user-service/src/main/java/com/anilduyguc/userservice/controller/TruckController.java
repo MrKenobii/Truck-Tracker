@@ -1,6 +1,7 @@
 package com.anilduyguc.userservice.controller;
 
 import com.anilduyguc.userservice.dto.Location;
+import com.anilduyguc.userservice.dto.truck.TruckSaveRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
 import com.anilduyguc.userservice.service.TruckService;
@@ -26,8 +27,8 @@ public class TruckController {
         return new ResponseEntity<>(truckService.getTruckById(id), HttpStatus.OK);
     }
     @PostMapping
-    public ResponseEntity<Truck> createTruck(@RequestBody Truck truck){
-        return new ResponseEntity<>(truckService.createTruck(truck), HttpStatus.CREATED);
+    public ResponseEntity<Truck> createTruck(@RequestBody TruckSaveRequest truckSaveRequest){
+        return new ResponseEntity<>(truckService.createTruck(truckSaveRequest), HttpStatus.CREATED);
     }
     @PutMapping("/{id}")
     public ResponseEntity<Truck> updateTruck(@PathVariable String id, @RequestBody Truck truck){
@@ -57,8 +58,10 @@ public class TruckController {
     }
     @PutMapping("/{truckId}/user/{userId}")
     public ResponseEntity<Truck> setDriver(@PathVariable String truckId, @PathVariable String userId){
-        System.out.println(truckId);
-        System.out.println(userId);
         return new ResponseEntity<>(truckService.setDriver(truckId, userId), HttpStatus.OK);
+    }
+    @PutMapping("/{truckId}/deliver")
+    public ResponseEntity<Truck> deliverGoods(@PathVariable String truckId){
+        return new ResponseEntity<>(truckService.deliverGoods(truckId), HttpStatus.OK);
     }
 }

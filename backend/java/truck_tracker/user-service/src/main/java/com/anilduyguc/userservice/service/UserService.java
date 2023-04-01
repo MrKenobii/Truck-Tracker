@@ -1,6 +1,7 @@
 package com.anilduyguc.userservice.service;
 
 import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
+import com.anilduyguc.userservice.dto.user.UserLocationRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Notification;
 import com.anilduyguc.userservice.modal.Role;
@@ -21,4 +22,8 @@ public interface UserService {
     User getUserByToken(String token);
 
     List<GetNotificationResponse> getUserNotifications(String id);
+
+    User setCurrentLocation(String userId, UserLocationRequest userLocationRequest);
+
+    List<User> getFreeDrivers();
 }

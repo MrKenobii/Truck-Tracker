@@ -1,6 +1,7 @@
 package com.anilduyguc.userservice.controller;
 
 import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
+import com.anilduyguc.userservice.dto.user.UserLocationRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Role;
 import com.anilduyguc.userservice.modal.User;
@@ -44,8 +45,6 @@ public class UserController {
             return new ResponseEntity<>(userService.getUserByToken(token), HttpStatus.OK);
         }
         return new ResponseEntity<>(new User(), HttpStatus.NOT_FOUND);
-
-
     }
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user){
@@ -54,6 +53,10 @@ public class UserController {
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(@PathVariable String userId, @RequestBody User user){
         return new ResponseEntity<>(userService.updateUser(userId, user), HttpStatus.OK);
+    }
+    @PutMapping("/{userId}/location")
+    public ResponseEntity<User> setLocation(@PathVariable String userId, @RequestBody UserLocationRequest userLocationRequest){
+        return new ResponseEntity<>(userService.setCurrentLocation(userId, userLocationRequest), HttpStatus.OK);
     }
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable String userId){
@@ -71,6 +74,10 @@ public class UserController {
     public ResponseEntity<List<GetNotificationResponse>> getUserNotifications(@PathVariable String id){
         System.out.println("HEREE");
         return new ResponseEntity<>(userService.getUserNotifications(id), HttpStatus.OK);
+    }
+    @GetMapping("/free-drivers")
+    public ResponseEntity<List<User>> getFreeDrivers(){
+        return new ResponseEntity<>(userService.getFreeDrivers(), HttpStatus.OK);
     }
 
 }

@@ -1,10 +1,10 @@
 package com.anilduyguc.userservice.service.impl;
 
 import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
-import com.anilduyguc.userservice.modal.City;
-import com.anilduyguc.userservice.modal.Notification;
-import com.anilduyguc.userservice.modal.Role;
-import com.anilduyguc.userservice.modal.User;
+import com.anilduyguc.userservice.dto.user.UserLocationRequest;
+import com.anilduyguc.userservice.modal.*;
+import com.anilduyguc.userservice.repository.RoleRepository;
+import com.anilduyguc.userservice.repository.TruckRepository;
 import com.anilduyguc.userservice.repository.UserRepository;
 import com.anilduyguc.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +13,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final TruckRepository truckRepository;
+    private final RoleRepository roleRepository;
     @Override
     public List<User> getUsers() {
         return userRepository.findAll();
@@ -80,6 +83,8 @@ public class UserServiceImpl implements UserService {
         userToUpdate.setSsNo(user.getSsNo());
         userToUpdate.setAccountActive(user.isAccountActive());
         userToUpdate.setStatus(user.getStatus());
+        userToUpdate.setLatitude(user.getLatitude());
+        userToUpdate.setLongitude(user.getLongitude());
 //        userToUpdate.setCity(user.getCity());
 //        userToUpdate.setNotification(user.getNotification());
 //        userToUpdate.setRole(user.getRole());
@@ -104,7 +109,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<GetNotificationResponse> getUserNotifications(String id) {
-        System.out.println("ANAN:INA");
         User user = userRepository.findById(id).orElseThrow(() -> {
             throw new RuntimeException("User with id: " + id + " was not found");
         });
@@ -114,7 +118,7 @@ public class UserServiceImpl implements UserService {
         if(user.getNotifications().size() > 0){
             System.out.println(user.getNotifications().size());
         } else {
-            System.out.println("EMPTYYYYYYYYY");
+            System.out.println("Empty List");
         }
         for(Notification notification: user.getNotifications()){
             getNotificationResponseList.add(GetNotificationResponse.builder()
@@ -124,5 +128,32 @@ public class UserServiceImpl implements UserService {
                     .build());
         }
         return getNotificationResponseList;
+    }
+
+    @Override
+    public User setCurrentLocation(String userId, UserLocationRequest userLocationRequest) {
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            throw new RuntimeException("User with id: " + userId + " was not found");
+        });
+        user.setLongitude(userLocationRequest.getLongitude());
+        user.setLatitude(userLocationRequest.getLatitude());
+        return userRepository.save(user);
+    }
+
+    @Override
+    public List<User> getFreeDrivers() {
+        Role role = roleRepository.findByName("TRUCK_DRIVER").orElseThrow(() -> {
+            throw new RuntimeException("No role found");
+        });
+        List<User> users = new ArrayList<>();
+        List<User> truckDrivers = userRepository.findUsersByRole(role);
+        for(User driver: truckDrivers){
+            Optional<Truck> truckByUser = truckRepository.findTruckByUser(driver);
+            if(truckByUser.isEmpty()){
+                users.add(driver);
+            }
+        }
+
+        return users;
     }
 }

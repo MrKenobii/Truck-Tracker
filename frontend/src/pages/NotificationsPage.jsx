@@ -36,6 +36,7 @@ function getStyles(name, roleName, theme) {
 
 const NotificationsPage = () => {
   const { user } = useSelector((state) => state.user);
+  console.log(user);
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();

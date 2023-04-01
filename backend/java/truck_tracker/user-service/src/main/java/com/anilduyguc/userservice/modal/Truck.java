@@ -1,10 +1,7 @@
 package com.anilduyguc.userservice.modal;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,6 +10,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 public class Truck {
     @Id
     private String id;

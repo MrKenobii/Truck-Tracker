@@ -1,5 +1,6 @@
 package com.anilduyguc.userservice.controller;
 
+import com.anilduyguc.userservice.dto.city.CityRequirementRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.service.CityService;
@@ -44,5 +45,13 @@ public class CityController {
     @GetMapping("/{id}/user")
     public ResponseEntity<List<User>> getUsersByCityName(@PathVariable String id){
         return new ResponseEntity<>(cityService.getUsersByCityId(id), HttpStatus.OK);
+    }
+    @PutMapping("/{id}/list")
+    public ResponseEntity<City> setRequirementList(@PathVariable String id, @RequestBody CityRequirementRequest cityRequirementRequest){
+        return new ResponseEntity<>(cityService.setRequirements(id, cityRequirementRequest), HttpStatus.OK);
+    }
+    @PutMapping("/list")
+    public ResponseEntity<List<City>> setAllRequirementsList(){
+        return new ResponseEntity<>(cityService.setAllRequirements(), HttpStatus.OK);
     }
 }

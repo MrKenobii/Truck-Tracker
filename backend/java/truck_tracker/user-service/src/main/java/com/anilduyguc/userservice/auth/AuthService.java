@@ -54,10 +54,9 @@ public class AuthService {
             userRepository.save(user);
             return AuthenticationResponse.builder()
                     .token(jwt)
-                    .message("Register successful")
+                    .message("Register successful.")
                     .build();
         }
-
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {

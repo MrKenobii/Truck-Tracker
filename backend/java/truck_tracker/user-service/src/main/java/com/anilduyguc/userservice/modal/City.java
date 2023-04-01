@@ -22,6 +22,7 @@ public class City {
     private String latitude;
     private String population;
     private Integer urgency;
+    private String requirementList;
     @OneToMany(mappedBy = "city", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private List<User> users;

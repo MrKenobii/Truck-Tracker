@@ -28,6 +28,8 @@ public class User implements UserDetails {
     private boolean isAccountActive;
     private String status;
     private String token;
+    private String latitude;
+    private String longitude;
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,

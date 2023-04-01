@@ -50,7 +50,6 @@ const TrucksTable = () => {
     const token = localStorage.getItem("token");
     getTrucks(token)
       .then((data) => {
-        console.log(data.data);
         const response = data.data.map((res) => {
           let fromCity = res.fromCity.name;
           let destinationCity = res.destinationCity.name;
@@ -62,7 +61,6 @@ const TrucksTable = () => {
 
           return { ...res, fromCity, destinationCity, driver };
         });
-        console.log(response);
         setRows(response);
       })
       .catch((error) => console.log(error));
@@ -93,8 +91,6 @@ const TrucksTable = () => {
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                     {columns.map((column, index) => {
                         const value = row[column.id];
-                        console.log(column.id);
-                        console.log(value);
                       return (
                           
                         <TableCell key={column.id + " " + index} align="right">
