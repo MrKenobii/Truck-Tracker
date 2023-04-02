@@ -22,7 +22,10 @@ public class City {
     private String latitude;
     private String population;
     private Integer urgency;
-    private String requirementList;
+    private Integer tent;
+    private Integer food;
+    private Integer water;
+    private Integer clothing;
     @OneToMany(mappedBy = "city", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private List<User> users;

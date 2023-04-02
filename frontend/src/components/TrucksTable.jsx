@@ -12,7 +12,10 @@ import { BASE_URL } from "../constants/urls";
 
 const columns = [
   { id: "id", label: "ID", minWidth: 170 },
-  { id: "content", label: "İçerik", minWidth: 170 },
+  { id: "water", label: "SU (Litre)", minWidth: 170 },
+  { id: "food", label: "Yiyecek (KG)", minWidth: 170 },
+  { id: "tent", label: "Çadır (Adet)", minWidth: 170 },
+  { id: "clothing", label: "Kıyafet (Kişi Başı)", minWidth: 170 },
   { id: "driver", label: "Şöfor İsmi", minWidth: 170 },
   { id: "destinationCity", label: "Hedef Şehir", minWidth: 170 },
   { id: "fromCity", label: "Ayrılan Şehir", minWidth: 170 },

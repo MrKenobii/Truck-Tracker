@@ -10,5 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CityRequirementRequest {
-    private String requirementList;
+    private Integer tent;
+    private Integer food;
+    private Integer water;
+    private Integer clothing;
 }

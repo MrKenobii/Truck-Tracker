@@ -634,7 +634,7 @@ const Map = () => {
                   <h4>{truck.destinationCity.name} şehrine gidiyor.</h4>
                   <h5>Tırın durumu "{truck.status}" </h5>
                   <h5>
-                    {truck.content} taşıyor {". "}
+                    {truck.water + " Litre su, " + truck.food + " kg yiyecek, " + truck.tent + " adet çadır, " + truck.clothing + " kişilik kıyafet taşıyor."}
                     <Link
                       to={`truck/${truck.id}`}
                       state={{
@@ -682,7 +682,7 @@ const Map = () => {
                       " " +
                       getUrgency(city.urgency)}
                   </h4>
-                  <h4>{"İHTİYAÇ LİSTESİ: " + city.requirementList}</h4>
+                  <h4>{"İHTİYAÇ LİSTESİ: " + city.water + " Litre su, " + city.food + " kg yiyecek, " + city.tent + " adet çadır, " + city.clothing + " kişilik kıyafet taşıyor."}</h4>
                   <h5>{"NÜFUS: " + city.population}</h5>
                 </div>
               </InfoWindowF>

@@ -21,4 +21,8 @@ public class TruckSaveRequest {
     private City destinationCity;
 
     private String userId;
+    private Integer tent;
+    private Integer food;
+    private Integer water;
+    private Integer clothing;
 }

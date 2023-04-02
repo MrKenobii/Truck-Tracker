@@ -15,16 +15,15 @@ public class Truck {
     @Id
     private String id;
     private String licensePlate;
-    private String content;
     private boolean isArrived;
     private boolean isEscorted;
     private String longitude;
     private String latitude;
-    private String fromLatitude;
-    private String fromLongitude;
-    private String toLatitude;
-    private String toLongitude;
     private String status;
+    private Integer tent;
+    private Integer food;
+    private Integer water;
+    private Integer clothing;
     @ManyToOne(cascade = {
             CascadeType.PERSIST,
             CascadeType.MERGE,

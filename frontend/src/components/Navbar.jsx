@@ -62,36 +62,6 @@ const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const isWhite = (color) => {
-    // fiddle this value to set stricter rules for what is white.
-    // if (color.match(/^rgb/)) {
-    //   // If HEX --> store the red, green, blue values in separate variables
-    //   color = color.match(
-    //     /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/
-    //   );
-
-    //   var r = color[1];
-    //   var g = color[2];
-    //   var b = color[3];
-    // } else {
-    //   // If RGB --> Convert it to HEX: http://gist.github.com/983661
-    //   color = +(
-    //     "0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&")
-    //   );
-
-    //   var r = color >> 16;
-    //   var g = (color >> 8) & 255;
-    //   var b = color & 255;
-    // }
-
-    // // HSP equation from http://alienryderflex.com/hsp.html
-    // var hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
-
-    // // Using the HSP value, determine whether the color is light or dark
-    // if (hsp > 127.5) {
-    //   return true;
-    // } else {
-    //   return false;
-    // }
     const hex = color.replace('#', '');
     const c_r = parseInt(hex.substring(0, 0 + 2), 16);
     const c_g = parseInt(hex.substring(2, 2 + 2), 16);
@@ -99,9 +69,7 @@ const Navbar = () => {
     const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
     return brightness > 155;
   };
-  // use this function like this. supply it a colour code with a # in front of it
-  isWhite("#FFFFFF");
-
+  
   const stringToColour = function (str) {
     var hash = 0;
     for (var i = 0; i < str.length; i++) {
@@ -253,6 +221,7 @@ const Navbar = () => {
                 }}
               >
                 {user &&
+                  localStorage.getItem("token") &&
                   user.role &&
                   user.role.name === "ADMIN" &&
                   navLinks.map((page, index) => (
@@ -317,6 +286,7 @@ const Navbar = () => {
             <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
               {user &&
                 user.role &&
+                localStorage.getItem("token") &&
                 user.role.name === "ADMIN" &&
                 navLinks.map((page, index) => (
                   <Box sx={{ marginY: "10px" }} key={index}>

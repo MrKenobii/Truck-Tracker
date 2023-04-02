@@ -76,7 +76,6 @@ public class TruckServiceImpl implements TruckService {
         System.out.println(user.getEmail());
         if(user.getRole().getName().equals("TRUCK_DRIVER")){
             Truck truck = Truck.builder()
-                    .content(truckSaveRequest.getContent())
                     .fromCity(truckSaveRequest.getFromCity())
                     .user(user)
                     .destinationCity(truckSaveRequest.getDestinationCity())
@@ -85,6 +84,10 @@ public class TruckServiceImpl implements TruckService {
                     .isEscorted(false)
                     .latitude(truckSaveRequest.getLatitude())
                     .longitude(truckSaveRequest.getLongitude())
+                    .food(truckSaveRequest.getFood())
+                    .tent(truckSaveRequest.getTent())
+                    .clothing(truckSaveRequest.getClothing())
+                    .water(truckSaveRequest.getWater())
                     .licensePlate(truckSaveRequest.getLicensePlate())
                     .build();
             truck.setId(id);
@@ -101,18 +104,18 @@ public class TruckServiceImpl implements TruckService {
             throw new RuntimeException("Truck with id: " + id + " was not found");
         });
         truckToUpdate.setArrived(truck.isArrived());
-        truckToUpdate.setContent(truck.getContent());
         truckToUpdate.setEscorted(truck.isEscorted());
         truckToUpdate.setStatus(truck.getStatus());
         truckToUpdate.setLatitude(truck.getLatitude());
         truckToUpdate.setLongitude(truck.getLongitude());
-        truckToUpdate.setFromLongitude(truck.getFromLongitude());
-        truckToUpdate.setFromLatitude(truck.getFromLatitude());
-        truckToUpdate.setToLatitude(truck.getToLatitude());
-        truckToUpdate.setToLongitude(truck.getToLongitude());
+
         truckToUpdate.setFromCity(truck.getFromCity());
         truckToUpdate.setDestinationCity(truck.getDestinationCity());
         truckToUpdate.setLicensePlate(truck.getLicensePlate());
+        truckToUpdate.setFood(truck.getFood());
+        truckToUpdate.setWater(truck.getWater());
+        truckToUpdate.setTent(truck.getTent());
+        truckToUpdate.setClothing(truck.getClothing());
         truckRepository.save(truckToUpdate);
         return truckToUpdate;
 
@@ -176,47 +179,18 @@ public class TruckServiceImpl implements TruckService {
         });
 
         City destinationCity = truck.getDestinationCity();
-        System.out.println("Destinatiyon City: " + destinationCity.getName());
-        String trucksContent = truck.getContent();
         City city = cityRepository.findById(destinationCity.getId()).orElseThrow(() -> {
             throw new RuntimeException("No city found with id " + destinationCity.getId());
         });
-        String cityRequirementList = city.getRequirementList();
-        List<String> numbersOfCities = extractInt2(cityRequirementList);
-        List<String> numbersOfTrucks = extractInt2(trucksContent);
-        String str = "";
-        String str2 = "";
-        String str3 = "";
-        for (int i = 0; i < 4; i++) {
-            if (i == 0) {
-                str += numbersOfCities.get(i) + " L su, ";
-                str2 += "0 " + " L su, ";
-                int a = Integer.parseInt(numbersOfCities.get(i)) - Integer.parseInt(numbersOfTrucks.get(i));
-                str3 += a + " L su, ";
-            } else if (i == 1) {
-                str += numbersOfCities.get(i) + " kg yiyecek, ";
-                str2 += "0 " + " kg yiyecek, ";
-                int a = Integer.parseInt(numbersOfCities.get(i)) - Integer.parseInt(numbersOfTrucks.get(i));
-                str3 += a + " kg yiyecek, ";
-            } else if (i == 2) {
-                str += numbersOfCities.get(i) + " çadır, ";
-                str2 += "0 " + " çadır, ";
-                int a = Integer.parseInt(numbersOfCities.get(i)) - Integer.parseInt(numbersOfTrucks.get(i));
-                str3 += a + " çadır, ";
-            } else if (i == 3) {
-                str += numbersOfCities.get(i) + " kişilik kıyafet";
-                str2 += "0 " + " kişilik kıyafet";
-                int a = Integer.parseInt(numbersOfCities.get(i)) - Integer.parseInt(numbersOfTrucks.get(i));
-                str3 += a + " kişilik kıyafet ";
-            }
-        }
-        System.out.println("STR: " + str);
-        System.out.println("STR2: " + str2);
-        System.out.println("STR3: " + str3);
-        city.setRequirementList(str3);
-        truck.setContent(str2);
-        truck.setArrived(true);
+        city.setFood(city.getFood() - truck.getFood());
+        city.setWater(city.getWater() - truck.getWater());
+        city.setTent(city.getTent() - truck.getTent());
+        city.setClothing(city.getClothing() - truck.getClothing());
         cityRepository.save(city);
+        truck.setClothing(0);
+        truck.setWater(0);
+        truck.setFood(0);
+        truck.setTent(0);
         return truckRepository.save(truck);
     }
 }
