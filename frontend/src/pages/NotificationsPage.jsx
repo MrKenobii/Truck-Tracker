@@ -14,25 +14,6 @@ import { Container, Grid, TextField } from "@mui/material";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-function getStyles(name, roleName, theme) {
-  return {
-    fontWeight:
-      roleName.indexOf(name) === -1
-        ? theme.typography.fontWeightRegular
-        : theme.typography.fontWeightMedium,
-  };
-}
 
 const NotificationsPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -109,7 +90,6 @@ const NotificationsPage = () => {
           emergencyLevel: 5,
         });
       } else if(user.role.name === "POLICE_STATION"){
-        console.log("ANAIN MIA")
         const newUsers = users.filter(
           (u) =>
             u.role.name === "ADMIN" || u.role.name === "POLICE"

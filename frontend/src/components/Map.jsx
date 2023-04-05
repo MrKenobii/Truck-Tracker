@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import Geocode from "react-geocode";
 import {
@@ -13,30 +13,22 @@ import { Link } from "react-router-dom";
 import { BASE_URL } from "../constants/urls";
 import LoadingComponent from "./LoadingComponent";
 import { useDispatch, useSelector } from "react-redux";
-import { Button } from "@mui/material";
-import Avatar from "@mui/material/Avatar";
-import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Typography,
+} from "@mui/material";
+import CreateTruck from "./CreateTruck";
+import { SocketContext } from "../context/socket";
 
 //38.473619157092614, 27.135962991566277
 //41.41639660475681, 29.602251748436288
 //40.99893685519544, 28.857916572952533
 // https://dev.to/lauratoddcodes/using-the-google-maps-api-in-react-31ph
-const delay = 5 * 30;
 const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
 const Map = () => {
-  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const [selectedElement, setSelectedElement] = useState(null);
   const [activeMarker, setActiveMarker] = useState(null);
@@ -46,15 +38,16 @@ const Map = () => {
   const [trucks, setTrucks] = useState([]);
   const [cities, setCities] = useState([]);
   const [urgentCities, setUrgentCities] = useState([]);
-  const [city, setCity] = useState("");
-  const [fromCity, setFromCity] = useState("");
-  const [driver, setDriver] = useState("");
+
   const [users, setUsers] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [updatedUser, setUpdatedUser] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [show, setShow] = useState(false);
   const [markers, setMarkers] = useState([]);
+
+  const socket = useContext(SocketContext);
+
   const handleMapLeftClick = (e) => {
     setMarkers((current) => [
       ...current,
@@ -64,17 +57,29 @@ const Map = () => {
       },
     ]);
   };
-  const handleChangeCity = (event) => {
-    setCity(event.target.value);
-    console.log(event.target.value);
-  };
-  const handleChangeFromCity = (event) => {
-    setFromCity(event.target.value);
-    console.log(event.target.value);
-  };
-  const handleChangeDriver = (event) => {
-    setDriver(event.target.value);
-    console.log(event.target.value);
+  const callCops = (obj) => {
+    //console.log(obj);
+    if (obj.hasOwnProperty("licensePlate")) {
+      socket.emit("sendToCops", {
+        senderName: user,
+        recievers: users,
+        content: `${obj.states}, ${obj.district} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+        emergencyLevel: 5,
+      });
+    } else {
+      const truck = trucks.find((t) => {
+        console.log(t.user.id);
+        console.log(user.id);
+        return t.user.id === user.id;
+      });
+      console.log(truck);
+      socket.emit("sendToCops", {
+        senderName: user,
+        recievers: users,
+        content: `${obj.states}, ${obj.district} konumundaki '${truck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+        emergencyLevel: 5,
+      });
+    }
   };
   const removeMarker = (marker) => {
     const newMarkers = markers.filter(
@@ -82,28 +87,7 @@ const Map = () => {
     );
     setMarkers(newMarkers);
   };
-  const createTruck = (event, lat, lng) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log(lat);
-    console.log(lng);
-    const payload = {
-      licensePlate: data.get("licensePlate"),
-      content: data.get("content"),
-      latitude: lat,
-      longitude: lng,
-      fromCity,
-      destinationCity: city,
-      status: "Yola çıkıyor",
-      userId: driver.id
-    };
-    console.log(payload);
-    axios.post(`${BASE_URL}/truck`, payload, {
-      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
-    }).then((res) => {
-      console.log(res.data);
-    });
-  };
+
   const setLocation = async (lat, long) => {
     let res = await axios.put(
       `${BASE_URL}/user/${user.id}/location`,
@@ -313,7 +297,6 @@ const Map = () => {
   );
   useEffect(() => {
     const doWork = () => {
-      console.log("EVERY ???");
       if (user !== null && localStorage.getItem("token")) {
         console.log(center);
         navigator.geolocation.getCurrentPosition(
@@ -329,9 +312,11 @@ const Map = () => {
               .catch((err) => console.log(err));
             fetchTrucks()
               .then((data) => {
-                setTrucks(data);
-                //console.log(data);
+                //setTrucks(data);
                 setTrucks(setAddress(data));
+
+                // console.log(data);
+                // setTrucks(setAddress(data));
                 setIsLoading(false);
               })
               .catch((error) => {
@@ -349,7 +334,9 @@ const Map = () => {
 
             fetchCities()
               .then((data) => {
-                const sortedList = data.sort((a, b) => a.name.localeCompare(b.name));
+                const sortedList = data.sort((a, b) =>
+                  a.name.localeCompare(b.name)
+                );
                 setCities(sortedList);
                 data = data.filter((city) => {
                   return city.urgency >= 3;
@@ -432,126 +419,12 @@ const Map = () => {
             >
               <div style={{ padding: 0, color: "black" }}>
                 {user.role.name === "ADMIN" && (
-                  <Container component="main" maxWidth="xs">
-                    <CssBaseline />
-                    <Box
-                      sx={{
-                        marginTop: 8,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography component="h1" variant="h5">
-                        Tır Ekle
-                      </Typography>
-                      <Box
-                        component="form"
-                        onSubmit={(e) => createTruck(e, marker.lat, marker.lng)}
-                        noValidate
-                        sx={{ mt: 1 }}
-                      >
-                        <Grid container spacing={2}>
-                          <Grid item xs={6} sm={6}>
-                            <TextField
-                              margin="normal"
-                              required
-                              fullWidth
-                              id="licensePlate"
-                              label="Tır Plaka"
-                              name="licensePlate"
-                              autoComplete="licensePlate"
-                              autoFocus
-                            />
-                          </Grid>
-                          <Grid item xs={6} sm={6}>
-                            <TextField
-                              margin="normal"
-                              required
-                              fullWidth
-                              name="content"
-                              label="İçerik"
-                              id="content"
-                              autoComplete="content"
-                            />
-                          </Grid>
-
-                          <Grid item xs={6} sm={6}>
-                            <FormControl fullWidth>
-                              <InputLabel id="select-label-city">
-                                Varış Şehiri
-                              </InputLabel>
-                              <Select
-                                labelId="select-label-city"
-                                id="destinationCity"
-                                value={city}
-                                label="Varılacak Şehir"
-                                onChange={handleChangeCity}
-                              >
-                                {urgentCities.map((c, index) => (
-                                  <MenuItem key={index} value={c}>
-                                    {c.name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                          <Grid item xs={6} sm={6}>
-                            <FormControl fullWidth>
-                              <InputLabel id="select-label-from-city">
-                                Çıkış Şehiri
-                              </InputLabel>
-                              <Select
-                                labelId="select-from-label-city"
-                                id="fromCity"
-                                value={fromCity}
-                                label="Çıkıi Şehir"
-                                onChange={handleChangeFromCity}
-                              >
-                                {cities.map((c, index) => (
-                                  <MenuItem key={index} value={c}>
-                                    {c.name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                          <Grid item xs={6} sm={6}>
-                            <FormControl fullWidth>
-                              <InputLabel id="select-label-driver">
-                                Boş Şöfor
-                              </InputLabel>
-                              <Select
-                                labelId="select-label-driver"
-                                id="driverSelect"
-                                value={driver}
-                                label="Boş Şöfor"
-                                onChange={handleChangeDriver}
-                              >
-                                {drivers.map((driver, index) => (
-                                  <MenuItem key={index} value={driver}>
-                                    {driver.name + " " + driver.lastName}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                        </Grid>
-                        <Button
-                          type="submit"
-                          fullWidth
-                          variant="contained"
-                          sx={{ mt: 3, mb: 2 }}
-                        >
-                          Ekle
-                        </Button>
-                        <Grid container>
-                          <Grid item xs></Grid>
-                          <Grid item></Grid>
-                        </Grid>
-                      </Box>
-                    </Box>
-                  </Container>
+                  <CreateTruck
+                    marker={marker}
+                    urgentCities={urgentCities}
+                    cities={cities}
+                    drivers={drivers}
+                  />
                 )}
               </div>
             </InfoWindowF>
@@ -585,8 +458,25 @@ const Map = () => {
               <h4>{user.name + " " + user.lastName}</h4>
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
               {user.role.name === "TRUCK_DRIVER" && (
-                <Button variant="outlined" onClick={deliverGoods}>
+                <Button
+                  type="button"
+                  fullWidth
+                  variant="contained"
+                  onClick={deliverGoods}
+                >
                   Teslim Et
+                </Button>
+              )}
+              {user.role.name === "TRUCK_DRIVER" && (
+                <Button
+                  type="button"
+                  fullWidth
+                  color="error"
+                  variant="contained"
+                  onClick={() => callCops(user)}
+                  sx={{ mt: 3, mb: 2 }}
+                >
+                  Polisleri çağır
                 </Button>
               )}
             </div>
@@ -596,58 +486,140 @@ const Map = () => {
 
       {trucks &&
         trucks.map((truck, index) => (
-          <MarkerF
-            title={truck.licensePlate}
-            key={index}
-            position={{
-              lat: Number(truck.latitude),
-              lng: Number(truck.longitude),
-            }}
-            icon={{
-              url: "https://cdn-icons-png.flaticon.com/512/4047/4047296.png",
-              scaledSize: new window.google.maps.Size(40, 40),
-            }}
-            onClick={(props, marker) => {
-              setSelectedElement(truck);
-              setActiveMarker(marker);
-            }}
-          >
-            {selectedElement && truck === selectedElement ? (
-              <InfoWindowF
-                visible={showInfoWindow}
-                marker={activeMarker}
-                onCloseClick={() => {
-                  setSelectedElement(null);
+          <div key={index}>
+            {truck.user.id !== user.id && (
+              <MarkerF
+                title={truck.licensePlate}
+                key={index}
+                position={{
+                  lat: Number(truck.latitude),
+                  lng: Number(truck.longitude),
+                }}
+                icon={{
+                  url: "https://cdn-icons-png.flaticon.com/512/4047/4047296.png",
+                  scaledSize: new window.google.maps.Size(40, 40),
+                }}
+                onClick={(props, marker) => {
+                  setSelectedElement(truck);
+                  setActiveMarker(marker);
                 }}
               >
-                <div style={{ padding: 0, color: "black" }}>
-                  <h3>
-                    {truck.states}, {truck.district}
-                  </h3>
-                  <h4>
-                    Şöfor: {truck.user.name} {truck.user.lastName}
-                  </h4>
-                  <h4>
-                    {truck.licensePlate} plakalı tır {truck.fromCity.name}{" "}
-                    şehrinden yola çıktı.
-                  </h4>
-                  <h4>{truck.destinationCity.name} şehrine gidiyor.</h4>
-                  <h5>Tırın durumu "{truck.status}" </h5>
-                  <h5>
-                    {truck.water + " Litre su, " + truck.food + " kg yiyecek, " + truck.tent + " adet çadır, " + truck.clothing + " kişilik kıyafet taşıyor."}
-                    <Link
-                      to={`truck/${truck.id}`}
-                      state={{
-                        truck,
-                      }}
-                    >
-                      daha fazla bilgi için
-                    </Link>
-                  </h5>
-                </div>
-              </InfoWindowF>
-            ) : null}
-          </MarkerF>
+                {selectedElement && truck === selectedElement ? (
+                  <InfoWindowF
+                    visible={showInfoWindow}
+                    marker={activeMarker}
+                    onCloseClick={() => {
+                      setSelectedElement(null);
+                    }}
+                  >
+                    <div style={{ padding: 0, color: "black" }}>
+                      <h3>
+                        {truck.states}, {truck.district}
+                      </h3>
+                      <h4>
+                        Şöfor: {truck.user.name} {truck.user.lastName}
+                      </h4>
+                      <h4>
+                        {truck.licensePlate} plakalı tır {truck.fromCity.name}{" "}
+                        şehrinden yola çıktı.
+                      </h4>
+                      <h4>{truck.destinationCity.name} şehrine gidiyor.</h4>
+                      <h5>Tırın durumu "{truck.status}" </h5>
+                      <h5>
+                        {truck.water +
+                          " Litre su, " +
+                          truck.food +
+                          " kg yiyecek, " +
+                          truck.tent +
+                          " adet çadır, " +
+                          truck.clothing +
+                          " kişilik kıyafet taşıyor."}
+                        <Link
+                          to={`truck/${truck.id}`}
+                          state={{
+                            truck,
+                          }}
+                        >
+                          daha fazla bilgi için
+                        </Link>
+                      </h5>
+                      {(user.role.name === "ADMIN" ||
+                        user.role.name === "POLICE_STATION") &&
+                        !truck.escorted && (
+                          <Button
+                            type="button"
+                            fullWidth
+                            variant="contained"
+                            onClick={() => callCops(truck)}
+                            sx={{ mt: 3, mb: 2 }}
+                          >
+                            Polisleri yönlendir
+                          </Button>
+                        )}
+                      {(user.role.name === "ADMIN" ||
+                        user.role.name === "POLICE_STATION") &&
+                        truck.escorted && (
+                          <Card
+                            sx={{
+                              height: "%50",
+                              minWidth: 275,
+                              backgroundColor: "#1876D1",
+                              color: "white",
+                            }}
+                          >
+                            <CardContent>
+                              <Typography variant="h6" component="div">
+                                Polis eşlik ediyor
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        )}
+                      {!(
+                        user.role.name === "ADMIN" ||
+                        user.role.name === "POLICE_STATION"
+                      ) &&
+                        truck.escorted && (
+                          <Card
+                            sx={{
+                              height: "%50",
+                              minWidth: 275,
+                              backgroundColor: "#1876D1",
+                              color: "white",
+                            }}
+                          >
+                            <CardContent>
+                              <Typography variant="h6" component="div">
+                                Polis eşlik ediyor
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        )}
+                      {!(
+                        user.role.name === "ADMIN" ||
+                        user.role.name === "POLICE_STATION"
+                      ) &&
+                        !truck.escorted && (
+                          <Card
+                            sx={{
+                              height: "%50",
+                              minWidth: 275,
+                              backgroundColor: "#1876D1",
+                              color: "white",
+                            }}
+                          >
+                            <CardContent>
+                              <Typography variant="h6" component="div">
+                                Tıra eşlik edilmiyor
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        )}
+                    </div>
+                  </InfoWindowF>
+                ) : null}
+              </MarkerF>
+            )}
+          </div>
         ))}
       {urgentCities &&
         urgentCities.map((city, index) => (
@@ -682,7 +654,17 @@ const Map = () => {
                       " " +
                       getUrgency(city.urgency)}
                   </h4>
-                  <h4>{"İHTİYAÇ LİSTESİ: " + city.water + " Litre su, " + city.food + " kg yiyecek, " + city.tent + " adet çadır, " + city.clothing + " kişilik kıyafet taşıyor."}</h4>
+                  <h4>
+                    {"İHTİYAÇ LİSTESİ: " +
+                      city.water +
+                      " Litre su, " +
+                      city.food +
+                      " kg yiyecek, " +
+                      city.tent +
+                      " adet çadır, " +
+                      city.clothing +
+                      " kişilik kıyafet taşıyor."}
+                  </h4>
                   <h5>{"NÜFUS: " + city.population}</h5>
                 </div>
               </InfoWindowF>

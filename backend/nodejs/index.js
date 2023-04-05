@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendNotification", ({ senderName, recievers, content, emergencyLevel }) => {
-    console.log("----------------------SEND NOTIF----------------------" + recievers.length);
+    console.log("----------------------SEND NOTIF---------------------- " + recievers.length);
     recievers.map((reciverName) => {
       const receiver = getUser(reciverName.username);
       if(receiver && (reciverName.role.name === "ADMIN" || reciverName.role.name === "POLICE_STATION")){
@@ -91,11 +91,20 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("sendText", ({ senderName, receiverName, text }) => {
-    const receiver = getUser(receiverName);
-    io.to(receiver.socketId).emit("getText", {
-      senderName,
-      text,
+  socket.on("sendToCops", ({ senderName, recievers, content, emergencyLevel }) => {
+    console.log("----------------------CALL COPS---------------------- : " + content);
+    recievers.map((reciverName) => {
+      const receiver = getUser(reciverName.username);
+      if(receiver && receiver.socketId && (reciverName.role.name === "ADMIN" || reciverName.role.name === "POLICE_STATION" || reciverName.role.name === "POLICE")){
+        io.to(receiver.socketId).emit("getNotification", {
+          senderName,
+          notif: {
+            id: uuidv4(),
+            content,
+            emergencyLevel
+          }
+        });
+      }
     });
   });
 
