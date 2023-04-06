@@ -38,6 +38,7 @@ const Map = () => {
   const [trucks, setTrucks] = useState([]);
   const [cities, setCities] = useState([]);
   const [urgentCities, setUrgentCities] = useState([]);
+  const [usersTruck, setUsersTruck] = useState(null);
 
   const [users, setUsers] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -68,8 +69,6 @@ const Map = () => {
       });
     } else {
       const truck = trucks.find((t) => {
-        console.log(t.user.id);
-        console.log(user.id);
         return t.user.id === user.id;
       });
       console.log(truck);
@@ -102,11 +101,40 @@ const Map = () => {
     return res.data;
   };
   const deliverGoods = async () => {
-    if (trucks.find((t) => t.user.id === user.id)) {
-      await axios.put(`${BASE_URL}/truck/${user.id}/deliver`, {
+      let res = await axios.put(`${BASE_URL}/truck/${user.id}/deliver`, {
         headers: { Authorization: "Bearer " + localStorage.getItem("token") },
       });
+      if(res.status === 200){
+        console.log(res.data);
+      } else {
+        console.log("error");
+      }
+
+  };
+  const takeOff = async () => {
+    let res = await axios.put(`${BASE_URL}/truck/${usersTruck.id}/take-off`, {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+    });
+    if(res.status === 200){
+      console.log(res.data);
+    } else {
+      console.log("error");
     }
+  }
+  const setTruckLocation = async (lat, lng, truck) => {
+    return await axios.put(
+      `${BASE_URL}/truck/${truck.id}/location`,
+      {
+        longitude: lng,
+        latitude: lat,
+      },
+      {
+        headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+      }
+    );
+  };
+  const setTruckOfUser = () => {
+    setUsersTruck(trucks.find((t) => t.user.id === user.id));
   };
   const getImageByRole = (role) => {
     if (role === "POLICE")
@@ -313,7 +341,30 @@ const Map = () => {
             fetchTrucks()
               .then((data) => {
                 //setTrucks(data);
-                setTrucks(setAddress(data));
+                if (user.role.name === "TRUCK_DRIVER") {
+                  const truck = data.find((t) => {
+                    return t.user.id === user.id;
+                  });
+                  console.log(truck);
+                  setUsersTruck(truck);
+                  setTruckLocation(
+                    position.coords.latitude,
+                    position.coords.longitude,
+                    truck
+                  )
+                    .then((tRes) => {
+                      if (tRes.status === 200) {
+                        console.log(tRes.data);
+                        const newArr = data.filter((t) => t.id !== truck.id);
+                        setTrucks(setAddress(newArr));
+                      } else {
+                        console.log("no");
+                      }
+                    })
+                    .catch((err) => console.log(err));
+                } else {
+                  setTrucks(setAddress(data));
+                }
 
                 // console.log(data);
                 // setTrucks(setAddress(data));
@@ -458,14 +509,27 @@ const Map = () => {
               <h4>{user.name + " " + user.lastName}</h4>
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
               {user.role.name === "TRUCK_DRIVER" && (
-                <Button
-                  type="button"
-                  fullWidth
-                  variant="contained"
-                  onClick={deliverGoods}
-                >
-                  Teslim Et
-                </Button>
+                <>
+                  {usersTruck && usersTruck.tookOff ? (
+                    <Button
+                      type="button"
+                      fullWidth
+                      variant="contained"
+                      onClick={takeOff}
+                    >
+                      Yola Çık
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      fullWidth
+                      variant="contained"
+                      onClick={deliverGoods}
+                    >
+                      Teslim Et
+                    </Button>
+                  )}
+                </>
               )}
               {user.role.name === "TRUCK_DRIVER" && (
                 <Button
@@ -671,7 +735,7 @@ const Map = () => {
             ) : null}
           </MarkerF>
         ))}
-      {users &&
+      {/* {users &&
         users.map((user, index) => (
           <MarkerF
             key={index}
@@ -706,7 +770,7 @@ const Map = () => {
               </InfoWindowF>
             ) : null}
           </MarkerF>
-        ))}
+        ))} */}
     </GoogleMap>
   ) : (
     <LoadingComponent />

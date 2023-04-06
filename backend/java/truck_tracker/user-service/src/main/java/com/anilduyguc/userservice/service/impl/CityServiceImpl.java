@@ -2,12 +2,9 @@ package com.anilduyguc.userservice.service.impl;
 
 import com.anilduyguc.userservice.dto.city.CityRequirementRequest;
 import com.anilduyguc.userservice.modal.City;
-import com.anilduyguc.userservice.modal.Truck;
 import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.repository.CityRepository;
-import com.anilduyguc.userservice.repository.TruckRepository;
 import com.anilduyguc.userservice.service.CityService;
-import com.anilduyguc.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +24,12 @@ public class CityServiceImpl implements CityService {
 
     @Override
     public City getCityById(String id) {
-        return cityRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("City with id: " + id + " does not found");
-        });
+        return cityRepository.findById(id).orElseThrow(() -> new RuntimeException("City with id: " + id + " does not found"));
     }
 
     @Override
     public City getCityByName(String cityName) {
-        return cityRepository.findCitiesByName(cityName).orElseThrow(() -> {
-            throw new RuntimeException("City with name: " + cityName + " does not found");
-        });
+        return cityRepository.findCitiesByName(cityName).orElseThrow(() -> new RuntimeException("City with name: " + cityName + " does not found"));
     }
 
     @Override
@@ -49,15 +42,12 @@ public class CityServiceImpl implements CityService {
 
     @Override
     public City updateCity(String id, City city) {
-        City cityToUpdate = cityRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("City with id: " + id + " does not found");
-        });
+        City cityToUpdate = cityRepository.findById(id).orElseThrow(() -> new RuntimeException("City with id: " + id + " does not found"));
         cityToUpdate.setName(city.getName());
         cityToUpdate.setLatitude(city.getLatitude());
         cityToUpdate.setLongitude(city.getLongitude());
         cityToUpdate.setUrgency(city.getUrgency());
         cityToUpdate.setPopulation(city.getPopulation());
-        //cityToUpdate.setRequirementList(city.getRequirementList());
         cityToUpdate.setFood(city.getFood());
         cityToUpdate.setClothing(city.getClothing());
         cityToUpdate.setWater(city.getWater());
@@ -68,25 +58,19 @@ public class CityServiceImpl implements CityService {
 
     @Override
     public void deleteCity(String id) {
-        City city = cityRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("City with id: " + id + " does not found");
-        });
+        City city = cityRepository.findById(id).orElseThrow(() -> new RuntimeException("City with id: " + id + " does not found"));
         cityRepository.delete(city);
     }
 
     @Override
     public List<User> getUsersByCityId(String id) {
-        City city = cityRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Does not found");
-        });
+        City city = cityRepository.findById(id).orElseThrow(() -> new RuntimeException("Does not found"));
         return city.getUsers();
     }
 
     @Override
     public City setRequirements(String id, CityRequirementRequest cityRequirementRequest) {
-        City city = cityRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("City with id: " + id + " does not found");
-        });
+        City city = cityRepository.findById(id).orElseThrow(() -> new RuntimeException("City with id: " + id + " does not found"));
         city.setTent(cityRequirementRequest.getTent());
         city.setWater(cityRequirementRequest.getWater());
         city.setClothing(cityRequirementRequest.getClothing());

@@ -56,9 +56,10 @@ const UsersTable = () => {
             console.log(response);
           setRows(response);
       }).catch((error) => console.log(error));
-  }, [])
+  }, []);
 
   return (
+    <>
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
@@ -109,6 +110,7 @@ const UsersTable = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
     </Paper>
+    </>
   );
 };
 

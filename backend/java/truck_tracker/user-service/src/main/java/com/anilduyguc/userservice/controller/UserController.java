@@ -10,11 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @RequestMapping("/api/v1/user")
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
@@ -40,8 +39,8 @@ public class UserController {
     @GetMapping("/token")
     public ResponseEntity<User> getUserByToken(@RequestHeader HttpHeaders headers){
         if(headers.containsKey("authorization")){
-            String token = headers.get("authorization").get(0);
-            token = token.substring(7, token.length());
+            String token = Objects.requireNonNull(headers.get("authorization")).get(0);
+            token = token.substring(7);
             return new ResponseEntity<>(userService.getUserByToken(token), HttpStatus.OK);
         }
         return new ResponseEntity<>(new User(), HttpStatus.NOT_FOUND);

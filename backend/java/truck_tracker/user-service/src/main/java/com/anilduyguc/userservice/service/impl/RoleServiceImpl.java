@@ -5,7 +5,6 @@ import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.repository.RoleRepository;
 import com.anilduyguc.userservice.service.RoleService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,23 +22,17 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getRoleById(String id) {
-        return roleRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Role with id: " + id + " was not found");
-        });
+        return roleRepository.findById(id).orElseThrow(() -> new RuntimeException("Role with id: " + id + " was not found"));
     }
 
     @Override
     public Role getRoleByName(String name) {
-        return roleRepository.findByName(name).orElseThrow(() -> {
-            throw new RuntimeException("Role with name: " + name + " was not found");
-        });
+        return roleRepository.findByName(name).orElseThrow(() -> new RuntimeException("Role with name: " + name + " was not found"));
     }
 
     @Override
     public List<User> getUsersByRoleName(String name) {
-        Role role = roleRepository.findByName(name).orElseThrow(() -> {
-            throw new RuntimeException("Role with name: " + name + " was not found");
-        });
+        Role role = roleRepository.findByName(name).orElseThrow(() -> new RuntimeException("Role with name: " + name + " was not found"));
         return role.getUsers();
     }
 
@@ -53,9 +46,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role updateRole(String id, Role role) {
-        Role roleToUpdate = roleRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Role with id: " + id + " was not found");
-        });
+        Role roleToUpdate = roleRepository.findById(id).orElseThrow(() -> new RuntimeException("Role with id: " + id + " was not found"));
         roleToUpdate.setName(role.getName());
         roleToUpdate.setUsers(role.getUsers());
         roleRepository.save(roleToUpdate);
@@ -64,9 +55,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void deleteRole(String id) {
-        Role role = roleRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Role with id: " + id + " was not found");
-        });
+        Role role = roleRepository.findById(id).orElseThrow(() -> new RuntimeException("Role with id: " + id + " was not found"));
         roleRepository.delete(role);
     }
 }

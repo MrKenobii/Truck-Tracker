@@ -1,6 +1,7 @@
 package com.anilduyguc.userservice.service.impl;
 
 import com.anilduyguc.userservice.dto.Location;
+import com.anilduyguc.userservice.dto.truck.TruckActionResponse;
 import com.anilduyguc.userservice.dto.truck.TruckSaveRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
@@ -10,14 +11,12 @@ import com.anilduyguc.userservice.repository.TruckRepository;
 import com.anilduyguc.userservice.repository.UserRepository;
 import com.anilduyguc.userservice.service.TruckService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 @Service
 @RequiredArgsConstructor
@@ -33,16 +32,12 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public Truck getTruckById(String id) {
-        return truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        return truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
     }
 
     @Override
     public Location getCurrentLocationByTruckId(String id) {
-        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        Truck truck = truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
         Location location = new Location();
         location.setLatitude(truck.getLatitude());
         location.setLongitude(truck.getLongitude());
@@ -53,26 +48,20 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public City getFromCityByTruckId(String id) {
-        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        Truck truck = truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
         return truck.getFromCity();
     }
 
     @Override
     public City getDestinationCityByTruckId(String id) {
-        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        Truck truck = truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
         return truck.getDestinationCity();
     }
 
     @Override
     public Truck createTruck(TruckSaveRequest truckSaveRequest) {
         String id = UUID.randomUUID().toString();
-        User user = userRepository.findById(truckSaveRequest.getUserId()).orElseThrow(() -> {
-            throw new RuntimeException(" Not found");
-        });
+        User user = userRepository.findById(truckSaveRequest.getUserId()).orElseThrow(() -> new RuntimeException(" Not found"));
         System.out.println(user.getEmail());
         if(user.getRole().getName().equals("TRUCK_DRIVER")){
             Truck truck = Truck.builder()
@@ -88,10 +77,10 @@ public class TruckServiceImpl implements TruckService {
                     .tent(truckSaveRequest.getTent())
                     .clothing(truckSaveRequest.getClothing())
                     .water(truckSaveRequest.getWater())
+                    .isTookOff(false)
                     .licensePlate(truckSaveRequest.getLicensePlate())
                     .build();
             truck.setId(id);
-            System.out.println("TRUCK DRIVERRRRR");
             truckRepository.save(truck);
             return truck;
         }
@@ -100,15 +89,13 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public Truck updateTruck(String id, Truck truck) {
-        Truck truckToUpdate = truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        Truck truckToUpdate = truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
         truckToUpdate.setArrived(truck.isArrived());
         truckToUpdate.setEscorted(truck.isEscorted());
         truckToUpdate.setStatus(truck.getStatus());
         truckToUpdate.setLatitude(truck.getLatitude());
         truckToUpdate.setLongitude(truck.getLongitude());
-
+        truckToUpdate.setTookOff(truck.isTookOff());
         truckToUpdate.setFromCity(truck.getFromCity());
         truckToUpdate.setDestinationCity(truck.getDestinationCity());
         truckToUpdate.setLicensePlate(truck.getLicensePlate());
@@ -123,17 +110,13 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public void deleteTruck(String id) {
-        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        Truck truck = truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
         truckRepository.delete(truck);
     }
 
     @Override
     public Truck setCurrentLocationByTruckId(String id, Location location) {
-        Truck truck = truckRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("Truck with id: " + id + " was not found");
-        });
+        Truck truck = truckRepository.findById(id).orElseThrow(() -> new RuntimeException("Truck with id: " + id + " was not found"));
         truck.setLongitude(location.getLongitude());
         truck.setLatitude(location.getLatitude());
         truckRepository.save(truck);
@@ -142,17 +125,12 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public Truck setDriver(String truckId, String userId) {
-        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> {
-            throw new RuntimeException("Not found");
-        });
+        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> new RuntimeException("Not found with id: " + truckId));
         if(truck != null){
             System.out.println(truck.getId());
-            User user = userRepository.findById(userId).orElseThrow(() -> {
-                throw new RuntimeException(" Not found");
-            });
+            User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Not found with id " + truckId));
             System.out.println(user.getEmail());
             if(user.getRole().getName().equals("TRUCK_DRIVER")){
-                System.out.println("TRUCK DRIVERRRRR");
                 truck.setUser(user);
                 truckRepository.save(truck);
                 return truck;
@@ -160,37 +138,60 @@ public class TruckServiceImpl implements TruckService {
             else return new Truck();
         } else return new Truck();
     }
-    public List<String> extractInt2(String str){
-
-        Pattern pattern = Pattern.compile("\\d+");
-        Matcher matcher = pattern.matcher(str);
-        List<String> digits = new ArrayList<String>();
-
-        while (matcher.find()) {
-            digits.add(matcher.group());
-        }
-        return digits;
-
-    }
     @Override
-    public Truck deliverGoods(String truckId) {
-        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> {
-            throw new RuntimeException("No truck found with id " + truckId);
-        });
+    public TruckActionResponse deliverGoods(String truckId) {
+        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> new RuntimeException("No truck found with id " + truckId));
+        if(truck.isTookOff()){
+            City destinationCity = truck.getDestinationCity();
+            City city = cityRepository.findById(destinationCity.getId()).orElseThrow(() -> new RuntimeException("No city found with id " + destinationCity.getId()));
+            city.setFood(city.getFood() - truck.getFood());
+            city.setWater(city.getWater() - truck.getWater());
+            city.setTent(city.getTent() - truck.getTent());
+            city.setClothing(city.getClothing() - truck.getClothing());
+            cityRepository.save(city);
+            truck.setClothing(0);
+            truck.setWater(0);
+            truck.setFood(0);
+            truck.setTent(0);
+            truck.setStatus("Teslim edildi");
+            Truck savedTruck = truckRepository.save(truck);
+            return TruckActionResponse.builder()
+                    .truckId(truckId)
+                    .licensePlate(savedTruck.getLicensePlate())
+                    .message("Tır başarıyla mallarını teslim etti")
+                    .status(savedTruck.getStatus())
+                    .build();
 
-        City destinationCity = truck.getDestinationCity();
-        City city = cityRepository.findById(destinationCity.getId()).orElseThrow(() -> {
-            throw new RuntimeException("No city found with id " + destinationCity.getId());
-        });
-        city.setFood(city.getFood() - truck.getFood());
-        city.setWater(city.getWater() - truck.getWater());
-        city.setTent(city.getTent() - truck.getTent());
-        city.setClothing(city.getClothing() - truck.getClothing());
-        cityRepository.save(city);
-        truck.setClothing(0);
-        truck.setWater(0);
-        truck.setFood(0);
-        truck.setTent(0);
-        return truckRepository.save(truck);
+        } else {
+            return TruckActionResponse.builder()
+                    .truckId(truckId)
+                    .licensePlate(truck.getLicensePlate())
+                    .message("Error")
+                    .status(truck.getStatus())
+                    .build();
+        }
+    }
+
+    @Override
+    public TruckActionResponse takeOff(String truckId) {
+        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> new RuntimeException("No truck found with id " + truckId));
+        if(!truck.isTookOff()){
+            truck.setTookOff(true);
+            truck.setStatus("Varış noktasına gidiliyor");
+            Truck savedTruck = truckRepository.save(truck);
+            return TruckActionResponse.builder()
+                    .truckId(truckId)
+                    .licensePlate(savedTruck.getLicensePlate())
+                    .message("Yola çıkabilirsiniz.")
+                    .status(savedTruck.getStatus())
+                    .build();
+        } else {
+            return TruckActionResponse.builder()
+                    .truckId(truckId)
+                    .licensePlate(truck.getLicensePlate())
+                    .message("Error")
+                    .status(truck.getStatus())
+                    .build();
+        }
     }
 }

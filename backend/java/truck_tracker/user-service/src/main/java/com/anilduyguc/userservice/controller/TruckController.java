@@ -1,12 +1,12 @@
 package com.anilduyguc.userservice.controller;
 
 import com.anilduyguc.userservice.dto.Location;
+import com.anilduyguc.userservice.dto.truck.TruckActionResponse;
 import com.anilduyguc.userservice.dto.truck.TruckSaveRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
 import com.anilduyguc.userservice.service.TruckService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +39,7 @@ public class TruckController {
         truckService.deleteTruck(id);
     }
     @GetMapping("/{id}/city")
-    public ResponseEntity<City> getCityByTruck(@PathVariable String id, @RequestParam(required = false) String from,@RequestParam(required = false) String to, @RequestParam(required = false) String current){
+    public ResponseEntity<City> getCityByTruck(@PathVariable String id, @RequestParam(required = false) String from,@RequestParam(required = false) String to){
         if(from != null){
             return new ResponseEntity<>(truckService.getFromCityByTruckId(id), HttpStatus.OK);
         } else if(to != null){
@@ -61,7 +61,11 @@ public class TruckController {
         return new ResponseEntity<>(truckService.setDriver(truckId, userId), HttpStatus.OK);
     }
     @PutMapping("/{truckId}/deliver")
-    public ResponseEntity<Truck> deliverGoods(@PathVariable String truckId){
+    public ResponseEntity<TruckActionResponse> deliverGoods(@PathVariable String truckId){
         return new ResponseEntity<>(truckService.deliverGoods(truckId), HttpStatus.OK);
+    }
+    @PutMapping("/{truckId}/take-off")
+    public ResponseEntity<TruckActionResponse> takeOff(@PathVariable String truckId){
+        return new ResponseEntity<>(truckService.takeOff(truckId), HttpStatus.OK);
     }
 }

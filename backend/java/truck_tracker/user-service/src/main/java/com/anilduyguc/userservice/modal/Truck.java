@@ -17,6 +17,7 @@ public class Truck {
     private String licensePlate;
     private boolean isArrived;
     private boolean isEscorted;
+    private boolean isTookOff;
     private String longitude;
     private String latitude;
     private String status;

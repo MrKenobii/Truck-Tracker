@@ -16,7 +16,6 @@ public class TruckSaveRequest {
     private String longitude;
     private String latitude;
     private String status;
-
     private City fromCity;
     private City destinationCity;
 

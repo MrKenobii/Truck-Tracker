@@ -62,14 +62,14 @@ const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const isWhite = (color) => {
-    const hex = color.replace('#', '');
+    const hex = color.replace("#", "");
     const c_r = parseInt(hex.substring(0, 0 + 2), 16);
     const c_g = parseInt(hex.substring(2, 2 + 2), 16);
     const c_b = parseInt(hex.substring(4, 4 + 2), 16);
-    const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+    const brightness = (c_r * 299 + c_g * 587 + c_b * 114) / 1000;
     return brightness > 155;
   };
-  
+
   const stringToColour = function (str) {
     var hash = 0;
     for (var i = 0; i < str.length; i++) {
@@ -235,34 +235,37 @@ const Navbar = () => {
                       </MenuItem>
                     </Link>
                   ))}
-                {user && localStorage.getItem("token") && (
-                  <div>
-                    <Link
-                      to={`notifications/${user.id}`}
-                      state={{ user, notifications }}
-                      style={{ textDecoration: "none", color: "inherit" }}
-                    >
-                      <MenuItem onClick={handleCloseNavMenu}>
-                        <Typography textAlign="center">
-                          Bildirimler{" "}
-                          {notifications.length > 0 && notifications.length}
-                        </Typography>
-                      </MenuItem>
-                    </Link>
-                    <Link
-                      to={`messages/${user.id}`}
-                      state={{ user }}
-                      style={{ textDecoration: "none", color: "inherit" }}
-                    >
-                      <MenuItem>
-                        <Typography textAlign="center">
-                          Mesajlar{" "}
-                          {notifications.length > 0 && notifications.length}
-                        </Typography>
-                      </MenuItem>
-                    </Link>
-                  </div>
-                )}
+                {user &&
+                  user.role &&
+                  user.role.name !== "NORMAL" &&
+                  localStorage.getItem("token") && (
+                    <div>
+                      <Link
+                        to={`notifications/${user.id}`}
+                        state={{ user, notifications }}
+                        style={{ textDecoration: "none", color: "inherit" }}
+                      >
+                        <MenuItem onClick={handleCloseNavMenu}>
+                          <Typography textAlign="center">
+                            Bildirimler{" "}
+                            {notifications.length > 0 && notifications.length}
+                          </Typography>
+                        </MenuItem>
+                      </Link>
+                      <Link
+                        to={`messages/${user.id}`}
+                        state={{ user }}
+                        style={{ textDecoration: "none", color: "inherit" }}
+                      >
+                        <MenuItem>
+                          <Typography textAlign="center">
+                            Mesajlar{" "}
+                            {notifications.length > 0 && notifications.length}
+                          </Typography>
+                        </MenuItem>
+                      </Link>
+                    </div>
+                  )}
               </Menu>
             </Box>
             <Typography
@@ -304,46 +307,52 @@ const Navbar = () => {
                     </Link>
                   </Box>
                 ))}
-              {user && localStorage.getItem("token") && (
-                <Box
-                  sx={{
-                    justifyContent: "flex-end",
-                    flexGrow: 1,
-                    display: { xs: "none", md: "flex" },
-                  }}
-                >
-                  <Link
-                    to={`notifications/${user.id}`}
-                    style={{ margin: "20px 10px" }}
-                    state={{ user, notifications }}
+              {user &&
+                user.role &&
+                user.role.name !== "NORMAL" &&
+                localStorage.getItem("token") && (
+                  <Box
+                    sx={{
+                      justifyContent: "flex-end",
+                      flexGrow: 1,
+                      display: { xs: "none", md: "flex" },
+                    }}
                   >
-                    <IconButton
-                      aria-label="notification"
-                      style={{ color: "white", borderRadius: "100%" }}
+                    <Link
+                      to={`notifications/${user.id}`}
+                      style={{ margin: "20px 10px" }}
+                      state={{ user, notifications }}
                     >
-                      <StyledBadge
-                        badgeContent={notifications.length}
-                        color="primary"
+                      <IconButton
+                        aria-label="notification"
+                        style={{ color: "white", borderRadius: "100%" }}
                       >
-                        <NotificationsIcon />
-                      </StyledBadge>
-                    </IconButton>
-                  </Link>
-                  <Link
-                    to={`messages/${user.id}`}
-                    style={{ margin: "20px 10px" }}
-                  >
-                    <IconButton aria-label="message" style={{ color: "white" }}>
-                      <StyledBadge
-                        badgeContent={notifications.length}
-                        color="primary"
+                        <StyledBadge
+                          badgeContent={notifications.length}
+                          color="primary"
+                        >
+                          <NotificationsIcon />
+                        </StyledBadge>
+                      </IconButton>
+                    </Link>
+                    <Link
+                      to={`messages/${user.id}`}
+                      style={{ margin: "20px 10px" }}
+                    >
+                      <IconButton
+                        aria-label="message"
+                        style={{ color: "white" }}
                       >
-                        <EmailIcon />
-                      </StyledBadge>
-                    </IconButton>
-                  </Link>
-                </Box>
-              )}
+                        <StyledBadge
+                          badgeContent={notifications.length}
+                          color="primary"
+                        >
+                          <EmailIcon />
+                        </StyledBadge>
+                      </IconButton>
+                    </Link>
+                  </Box>
+                )}
             </Box>
 
             <Box sx={{ flexGrow: 0, marginY: "5px" }}>

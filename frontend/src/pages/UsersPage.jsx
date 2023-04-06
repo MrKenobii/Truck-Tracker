@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import UsersTable from "../components/UsersTable"
+import UsersUpdatedTable from "../components/UsersUpdatedTable";
 
 const UsersPage = () => {
     const { user } = useSelector((state) => state.user);
@@ -11,7 +12,8 @@ const UsersPage = () => {
     }, []);
     return (
         <div>
-            <UsersTable />
+            {/* <UsersTable /> */}
+            <UsersUpdatedTable />
         </div>
     )
 }
