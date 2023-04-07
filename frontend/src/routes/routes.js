@@ -1,3 +1,5 @@
+import ActivateAccount from "../pages/ActivateAccount";
+import AdminDashboard from "../pages/AdminDashboard";
 import CitiesPage from "../pages/CitiesPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import HomePage from "../pages/HomePage";
@@ -72,6 +74,16 @@ import UsersPage from "../pages/UsersPage";
         path: "/update-password/:userId",
         element: <UpdatePasswordPage />,
         state: "update-password"
+    },
+    {
+        path: "/activate-account/:userId",
+        element: <ActivateAccount />,
+        state: "activate-account"
+    },
+    {
+        path: "/admin-dashboard/:userId",
+        element: <AdminDashboard />,
+        state: "activate-account"
     },
 
 ];

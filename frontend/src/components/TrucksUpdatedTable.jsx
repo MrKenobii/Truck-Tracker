@@ -3,8 +3,10 @@ import MaterialReactTable from "material-react-table";
 import Geocode from "react-geocode";
 import axios from "axios";
 import { BASE_URL } from "../constants/urls";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
+const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 Geocode.setApiKey(apiKey);
 Geocode.setLanguage("en");
 Geocode.setRegion("TR");
@@ -12,13 +14,8 @@ Geocode.setRegion("TR");
 const TrucksUpdatedTable = () => {
   
   const [tableData, setTableData] = useState([]);
-  
-  
-
-  
-
-
-
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
   const setAddress = (data) => {
      data.map((d, index) => {
       if ((d.states == null || d.district == null) && data.latitude !== null) {
@@ -221,24 +218,33 @@ const TrucksUpdatedTable = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
     };
-    const token = localStorage.getItem("token");
-    getTrucks(token)
-      .then((data) => {
-        const response = data.data.map((res) => {
-          let fromCity = res.fromCity.name;
-          let destinationCity = res.destinationCity.name;
-          let driver = res.user.name + " " + res.user.lastName;
-          let isArrived = res.arrived ? "EVET" : "HAYIR";
-          let isEscorted = res.escorted ? "EVET" : "HAYIR";
-          delete res.fromCity;
-          delete res.destinationCity;
-          delete res.user
+    if(user && localStorage.getItem("token")){
+      if(user.role.name === "ADMIN"){
+        const token = localStorage.getItem("token");
+        getTrucks(token)
+          .then((data) => {
+            const response = data.data.map((res) => {
+              let fromCity = res.fromCity.name;
+              let destinationCity = res.destinationCity.name;
+              let driver = res.user.name + " " + res.user.lastName;
+              let isArrived = res.arrived ? "EVET" : "HAYIR";
+              let isEscorted = res.escorted ? "EVET" : "HAYIR";
+              delete res.fromCity;
+              delete res.destinationCity;
+              delete res.user
+    
+              return { ...res, fromCity, destinationCity, driver, isArrived, isEscorted };
+            });
+            setTableData(response);
+          })
+          .catch((error) => console.log(error));
 
-          return { ...res, fromCity, destinationCity, driver, isArrived, isEscorted };
-        });
-        setTableData(response);
-      })
-      .catch((error) => console.log(error));
+      } else {
+        navigate("/");
+      }
+    } else {
+      navigate("/login");
+    }
   }, []);
 
   return (

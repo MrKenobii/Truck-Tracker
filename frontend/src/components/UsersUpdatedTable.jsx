@@ -7,28 +7,52 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
   MenuItem,
+  Select,
   Stack,
   TextField,
   Tooltip,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import Geocode from "react-geocode";
-import { data, states } from "./makeData";
 import axios from "axios";
 import { BASE_URL } from "../constants/urls";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
-const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
+const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 Geocode.setApiKey(apiKey);
 Geocode.setLanguage("en");
 Geocode.setRegion("TR");
+
+const validateRequired = (value) => !!value.length;
+const validateEmail = (email) =>
+  !!email.length &&
+  email
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+
+const fetchCities = async () => {
+  let res = await axios.get(`${BASE_URL}/city`);
+  return res.data;
+};
+const fetchRoles = async () => {
+  let res = await axios.get(`${BASE_URL}/role`);
+  return res.data;
+};
 
 const UsersUpdatedTable = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
-  const [addr, setAddr] = useState({});
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   const handleCreateNewRow = (values) => {
     tableData.push(values);
@@ -49,9 +73,9 @@ const UsersUpdatedTable = () => {
   };
 
   const setAddress = (data) => {
-     data.map((d, index) => {
+    data.map((d, index) => {
       if ((d.states == null || d.district == null) && data.latitude !== null) {
-       return Geocode.fromLatLng(d.latitude, d.longitude).then(
+        return Geocode.fromLatLng(d.latitude, d.longitude).then(
           (response) => {
             console.log(response);
 
@@ -110,7 +134,7 @@ const UsersUpdatedTable = () => {
     return data;
   };
   const setAddress2 = (d) => {
-    if ((d.states == null || d.district == null) && data.latitude !== null) {
+    if ((d.states == null || d.district == null) && d.latitude !== null) {
       return Geocode.fromLatLng(d.latitude, d.longitude).then(
         (response) => {
           for (
@@ -158,18 +182,18 @@ const UsersUpdatedTable = () => {
             }
           }
           //console.log(d.formattedAddress);
-        //   return {
-        //     formattedAddress: d.formattedAddress,
-        //     district: d.district,
-        //   };
-        return d;
+          //   return {
+          //     formattedAddress: d.formattedAddress,
+          //     district: d.district,
+          //   };
+          return d;
         },
         (error) => {
           console.error(error);
         }
       );
     }
-    return data;
+    return d;
   };
 
   const handleDeleteRow = useCallback(
@@ -180,8 +204,45 @@ const UsersUpdatedTable = () => {
       //     return;
       //   }
       //send api delete request here, then refetch or update local table data for re-render
-      tableData.splice(row.index, 1);
-      setTableData([...tableData]);
+      const deleteUser = async (user) => {
+        let res = await axios.delete(`${BASE_URL}/user/${user.id}`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
+        if (res.status === 200) {
+          return res.data;
+        } else {
+          toast.error("Silme işlemi başarısız", {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
+      };
+      deleteUser(row.original).then((deleteRes) => {
+        console.log(deleteRes);
+        toast.success(
+          `${row.original.name} ${row.original.lastName} adlı kullanıcı başarıyla silindi`,
+          {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          }
+        );
+        tableData.splice(row.index, 1);
+        setTableData([...tableData]);
+      });
     },
     [tableData]
   );
@@ -195,8 +256,6 @@ const UsersUpdatedTable = () => {
           const isValid =
             cell.column.id === "email"
               ? validateEmail(event.target.value)
-              : cell.column.id === "age"
-              ? validateAge(+event.target.value)
               : validateRequired(event.target.value);
           if (!isValid) {
             //set validation error for cell if invalid
@@ -216,6 +275,15 @@ const UsersUpdatedTable = () => {
     },
     [validationErrors]
   );
+  const getRole = (role) => {
+    if (role === "POLICE") return "POLİS";
+    else if (role === "POLICE_STATION") return "KARAKOL";
+    else if (role === "GOVERNMENT") return "HÜKÜMET";
+    else if (role === "TRUCK_DRIVER") return "TIR ŞÖFORÜ";
+    else if (role === "ADMIN") return "YÖNETİCİ";
+    else if (role === "NORMAL") return "NORMAL KULLANICI";
+    else return "";
+  };
 
   const columns = useMemo(
     () => [
@@ -301,21 +369,28 @@ const UsersUpdatedTable = () => {
         }),
       },
       {
-        accessorKey: "formattedAddress",
-        enableEditing: false,
-        header: "Açık Address",
+        accessorKey: "role",
+        header: "Rol",
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
-      {
-        accessorKey: "district",
-        enableEditing: false,
-        header: "İlçe",
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
+      // {
+      //   accessorKey: "formattedAddress",
+      //   enableEditing: false,
+      //   header: "Açık Address",
+      //   muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+      //     ...getCommonEditTextFieldProps(cell),
+      //   }),
+      // },
+      // {
+      //   accessorKey: "district",
+      //   enableEditing: false,
+      //   header: "İlçe",
+      //   muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+      //     ...getCommonEditTextFieldProps(cell),
+      //   }),
+      // },
     ],
     [getCommonEditTextFieldProps]
   );
@@ -325,34 +400,37 @@ const UsersUpdatedTable = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
     };
-    const token = localStorage.getItem("token");
-    console.log(token);
-    getUsers(token)
-      .then((data) => {
-        //console.log(data.data);
-        const response = data.data.map((res) => {
-          let city = res.city.name;
-          let role = res.role.name;
-          let accountStatus = res.enabled
-            ? "AKTİFLEŞTİRİLMİŞ"
-            : "AKTİFLEŞTİRİLMEMİŞ";
-            
-          //let fullAddress = `${getAddressStates(res)}, ${getAddressCity(res)}`;
-           
-          
-          
-          return { ...res, city, role, accountStatus  };
-        });
-        console.log(response);
-        //setTableData(setAddress(response));
-        setAddress(response).map((data) => {
-            console.log(data.formattedAddress);
-        });
-        
-        setTableData(response);
-        console.log("------------------");
-      })
-      .catch((error) => console.log(error));
+    if (user && localStorage.getItem("token")) {
+      if (user.role.name !== "ADMIN") {
+        navigate("/");
+      } else {
+        const token = localStorage.getItem("token");
+        console.log(token);
+        getUsers(token)
+          .then((data) => {
+            //console.log(data.data);
+            const response = data.data.map((res) => {
+              let city = res.city.name;
+              let role = getRole(res.role.name);
+              let accountStatus = res.enabled
+                ? "AKTİFLEŞTİRİLMİŞ"
+                : "AKTİFLEŞTİRİLMEMİŞ";
+
+              //let fullAddress = `${getAddressStates(res)}, ${getAddressCity(res)}`;
+
+              return { ...res, city, role, accountStatus };
+            });
+            console.log(response);
+            //setTableData(setAddress(response));
+
+            setTableData(response.filter((r) => r.id !== user.id));
+            console.log("------------------");
+          })
+          .catch((error) => console.log(error));
+      }
+    } else {
+      navigate("/login");
+    }
   }, []);
 
   return (
@@ -408,19 +486,90 @@ const UsersUpdatedTable = () => {
 };
 
 //example of creating a mui dialog modal for creating new rows
-export const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
+const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
+  const [cities, setCities] = useState([]);
+  const [city, setCity] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState("");
+  const [roles, setRoles] = useState([]);
   const [values, setValues] = useState(() =>
     columns.reduce((acc, column) => {
       acc[column.accessorKey ?? ""] = "";
       return acc;
     }, {})
   );
-
+  const handleChangeCity = (event) => {
+    setCity(event.target.value);
+    console.log(event.target.value);
+  };
+  const handleChangeRole = (event) => {
+    setRole(event.target.value);
+    console.log(event.target.value);
+  };
   const handleSubmit = () => {
     //put your validation logic here
+    const saveUser = async (user) => {
+      let res = await axios.post(`${BASE_URL}/auth/register`, user, {});
+      return res.data;
+    };
+    const payload = {
+      email: values.email,
+      password: values.password,
+      phoneNumber: values.phoneNumber,
+      firstName: values.name,
+      lastName: values.lastName,
+      city,
+      role
+    };
+    console.log(payload);
+    saveUser(payload).then((data) => {
+      console.log(data);
+    });
     onSubmit(values);
     onClose();
   };
+  useEffect(() => {
+    fetchCities()
+      .then((data) => {
+        setIsLoading(true);
+        const sortedList = data.sort((a, b) => a.name.localeCompare(b.name));
+        setCities(sortedList);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        toast.error("Something went wrong !", {
+          position: toast.POSITION.BOTTOM_CENTER,
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      });
+    fetchRoles()
+      .then((data) => {
+        setIsLoading(true);
+        data = data.filter((r) => {
+          return r.name !== "ADMIN";
+        });
+        setRoles(data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        toast.error("Something went wrong !", {
+          position: toast.POSITION.BOTTOM_CENTER,
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      });
+  }, []);
 
   return (
     <Dialog open={open}>
@@ -435,14 +584,61 @@ export const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
             }}
           >
             {columns.map((column) => (
-              <TextField
-                key={column.accessorKey}
-                label={column.header}
-                name={column.accessorKey}
-                onChange={(e) =>
-                  setValues({ ...values, [e.target.name]: e.target.value })
-                }
-              />
+              <>
+                {column.accessorKey !== "id" &&
+                  column.accessorKey !== "status" &&
+                  column.accessorKey !== "accountStatus" &&
+                  column.accessorKey !== "city" && 
+                  column.accessorKey !== "role" && (
+                    <TextField
+                      key={column.accessorKey}
+                      label={column.header}
+                      name={column.accessorKey}
+                      onChange={(e) =>
+                        setValues({
+                          ...values,
+                          [e.target.name]: e.target.value,
+                        })
+                      }
+                    />
+                  )}
+                {column.accessorKey === "city" && (
+                  <FormControl fullWidth>
+                    <InputLabel id="select-label-city">Şehir</InputLabel>
+                    <Select
+                      labelId="select-label-city"
+                      id="select-city"
+                      value={city}
+                      label="Şehir"
+                      onChange={handleChangeCity}
+                    >
+                      {cities.map((city, index) => (
+                        <MenuItem key={index} value={city.name}>
+                          {city.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+                {column.accessorKey === "role" && (
+                  <FormControl fullWidth>
+                    <InputLabel id="select-label-role">Rol</InputLabel>
+                    <Select
+                      labelId="select-label-role"
+                      id="select-role"
+                      value={role}
+                      label="Rol"
+                      onChange={handleChangeRole}
+                    >
+                      {roles.map((role, index) => (
+                        <MenuItem key={index} value={role.name}>
+                          {role.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              </>
             ))}
           </Stack>
         </form>
@@ -450,20 +646,10 @@ export const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
       <DialogActions sx={{ p: "1.25rem" }}>
         <Button onClick={onClose}>İptal</Button>
         <Button color="secondary" onClick={handleSubmit} variant="contained">
-        Yeni kullanıcı yarat
+          Yeni kullanıcı yarat
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
-
-const validateRequired = (value) => !!value.length;
-const validateEmail = (email) =>
-  !!email.length &&
-  email
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
-const validateAge = (age) => age >= 18 && age <= 50;
 export default UsersUpdatedTable;

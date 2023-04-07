@@ -133,7 +133,7 @@ const SignUpPage = () => {
         register(payload)
           .then((data) => {
             console.log(data);
-            if(data.token){
+            if(data.userId){
               toast.success("Successfully logged in !", {
                 position: toast.POSITION.BOTTOM_CENTER,
                 autoClose: 3000,
@@ -144,8 +144,7 @@ const SignUpPage = () => {
                 progress: undefined,
                 theme: "dark",
               });
-              localStorage.setItem("token", data.token);
-              navigate("/");
+              navigate(`/activate-account/${data.userId}`);
             } else {
               toast.error(data.message, {
                 position: toast.POSITION.BOTTOM_CENTER,
@@ -160,7 +159,7 @@ const SignUpPage = () => {
             }
           })
           .catch((error) => {
-            toast.error("Something went wrong !", {
+            toast.error("Bir şeyler ters gitti !", {
               position: toast.POSITION.BOTTOM_CENTER,
               autoClose: 3000,
               hideProgressBar: false,
@@ -172,7 +171,7 @@ const SignUpPage = () => {
             });
           });
       } else {
-        toast.error("Passwords are not matching !", {
+        toast.error("Şifreler eşleşmiyor !", {
           position: toast.POSITION.BOTTOM_CENTER,
           autoClose: 3000,
           hideProgressBar: false,
@@ -184,7 +183,7 @@ const SignUpPage = () => {
         });
       }
     } else {
-      toast.error("You must fill all the fields!", {
+      toast.error("Lütfen formu tamamen doldurun !", {
         position: toast.POSITION.BOTTOM_CENTER,
         autoClose: 3000,
         hideProgressBar: false,

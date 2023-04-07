@@ -8,6 +8,7 @@ import com.anilduyguc.userservice.repository.TruckRepository;
 import com.anilduyguc.userservice.repository.UserRepository;
 import com.anilduyguc.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TruckRepository truckRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
     @Override
     public List<User> getUsers() {
         return userRepository.findAll();
@@ -56,6 +58,8 @@ public class UserServiceImpl implements UserService {
     public User createUser(User user) {
         String id = UUID.randomUUID().toString();
         user.setId(id);
+        user.setStatus("OFFLINE");
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return user;
     }
@@ -68,12 +72,13 @@ public class UserServiceImpl implements UserService {
         userToUpdate.setLastName(user.getLastName());
         userToUpdate.setEmail(user.getEmail());
         userToUpdate.setPhoneNumber(user.getPhoneNumber());
-        userToUpdate.setPassword(user.getPassword());
+        userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
         userToUpdate.setSsNo(user.getSsNo());
         userToUpdate.setAccountActive(user.isAccountActive());
         userToUpdate.setStatus(user.getStatus());
         userToUpdate.setLatitude(user.getLatitude());
         userToUpdate.setLongitude(user.getLongitude());
+        userToUpdate.setAccountActivationToken(user.getAccountActivationToken());
 //        userToUpdate.setCity(user.getCity());
 //        userToUpdate.setNotification(user.getNotification());
 //        userToUpdate.setRole(user.getRole());

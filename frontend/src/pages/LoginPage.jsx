@@ -94,7 +94,7 @@ const LoginPage = () => {
               theme: "dark",
           });
         } else {
-          toast.error("Giriş hatalı. Tekrar deneyiniz !", {
+          toast.error(`${response.data.message}`, {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
             hideProgressBar: false,

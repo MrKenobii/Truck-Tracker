@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -33,28 +34,64 @@ public class AuthService {
     public AuthenticationResponse register(RegisterRequest registerRequest) {
         Optional<User> userByEmail = userRepository.findUserByEmail(registerRequest.getEmail());
         if(userByEmail.isPresent()){
-            return AuthenticationResponse.builder().token(null).message("Email is already taken").build();
+            return AuthenticationResponse.builder().token(null).message("Bu email adresiyle kayıtlı kullanıcı zaten var.").userId(null).build();
         } else {
             City city = cityRepository.findCitiesByName(registerRequest.getCity()).orElseThrow(() -> new RuntimeException("No city found with name " + registerRequest.getCity()));
             Role role = roleRepository.findByName(registerRequest.getRole()).orElseThrow(() -> new RuntimeException("No role found with name " + registerRequest.getRole()));
             var user = User.builder()
                     .id(UUID.randomUUID().toString())
                     .isAccountActive(false)
-                    .status("OFFLINE")
+                    .status("INACTIVE")
                     .phoneNumber(registerRequest.getPhoneNumber())
                     .city(city)
+                    .token(null)
                     .name(registerRequest.getFirstName())
                     .lastName(registerRequest.getLastName())
                     .email(registerRequest.getEmail())
+                    .accountActivationToken(String.valueOf(new Random().nextInt(900000) + 100000))
                     .password(passwordEncoder.encode(registerRequest.getPassword()))
                     .role(role)
                     .build();
-            var jwt = jwtService.generateToken(user);
-            user.setToken(jwt);
+            try {
+                emailService.sendHtmlEmailActivateAccount(user);
+            } catch (MessagingException e) {
+                throw new RuntimeException(e);
+            }
             userRepository.save(user);
             return AuthenticationResponse.builder()
-                    .token(jwt)
-                    .message("Register successful.")
+                    .token(null)
+                    .userId(user.getId())
+                    .message("Kayıt olma işlemi başarılı. Lütfen posta kutunuzu kontrol edin.")
+                    .build();
+        }
+    }
+    public ActivateAccountResponse activateAccount(String userId, ActivateAccountRequest request){
+        User userById = this.getUserById(userId);
+        if(!userById.isAccountActive()){
+            if(request.getActivationToken().equals(userById.getAccountActivationToken())){
+                var jwt = jwtService.generateToken(userById);
+                userById.setToken(jwt);
+                userById.setAccountActive(true);
+                userById.setAccountActivationToken(null);
+                userById.setStatus("ONLINE");
+                userRepository.save(userById);
+                return ActivateAccountResponse.builder()
+                        .token(jwt)
+                        .message("Hesabınız başarışıyla aktifleştirildi.")
+                        .user(userById)
+                        .build();
+            } else {
+                return ActivateAccountResponse.builder()
+                        .token(null)
+                        .message("Geçersiz kod girildi.")
+                        .user(null)
+                        .build();
+            }
+        } else {
+            return ActivateAccountResponse.builder()
+                    .token(null)
+                    .message("Hesap zaten aktive edilmiş.")
+                    .user(null)
                     .build();
         }
     }
@@ -63,22 +100,36 @@ public class AuthService {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword()));
         var user = userRepository.findUserByEmail(authenticationRequest.getEmail()).orElseThrow(() -> new RuntimeException("No user found"));
         var jwt = jwtService.generateToken(user);
-        if(user.getStatus().equals("OFFLINE")){
-            user.setToken(jwt);
-            user.setStatus("ONLINE");
-            userRepository.save(user);
+        if(user.isAccountActive()){
+            if(user.getStatus().equals("OFFLINE")){
+                user.setToken(jwt);
+                user.setStatus("ONLINE");
+                userRepository.save(user);
 
-            return AuthenticationResponse.builder()
-                    .token(jwt)
-                    .message("Login successful")
-                    .build();
+                return AuthenticationResponse.builder()
+                        .token(jwt)
+                        .message("Giriş başarılı")
+                        .build();
+            } else {
+                return AuthenticationResponse.builder()
+                        .token(null)
+                        .message("Giriş yapabilmek için diğer cihazlardan çıkış yapmalısınız.")
+                        .build();
+            }
         } else {
+            try {
+                emailService.sendHtmlEmailActivateAccount(user);
+            } catch (MessagingException e) {
+                throw new RuntimeException(e);
+            }
             return AuthenticationResponse.builder()
                     .token(null)
-                    .message("Login unsuccessful")
+                    .message("Hesabınız aktif değil. Lütfen posta kutunuzu kontrol edin.")
                     .build();
         }
+
     }
+
 
     public LogoutResponse logout(String id) {
         var user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("No user found"));

@@ -27,7 +27,8 @@ import { SocketContext } from "../context/socket";
 //41.41639660475681, 29.602251748436288
 //40.99893685519544, 28.857916572952533
 // https://dev.to/lauratoddcodes/using-the-google-maps-api-in-react-31ph
-const apiKey = "AIzaSyDVrg8ingS4jIjJVTp7iH3vHOXITV4jDg8";
+const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
 const Map = () => {
   const { user } = useSelector((state) => state.user);
   const [selectedElement, setSelectedElement] = useState(null);

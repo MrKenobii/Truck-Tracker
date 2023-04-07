@@ -85,6 +85,9 @@ const Navbar = () => {
   const handleProfile = () => {
     navigate(`/profile/${user.id}`);
   };
+  const handleDashboard = () => {
+    navigate(`/admin-dashboard/${user.id}`);
+  };
   const handleClick = (e) => {
     setAnchorElUser(e.currentTarget);
     navigate("/login");
@@ -388,7 +391,9 @@ const Navbar = () => {
                     }}
                   >
                     <MenuItem onClick={handleProfile}>Profil</MenuItem>
-                    {/* <MenuItem onClick={handleClose}>Hesabım</MenuItem> */}
+                    {user.role.name === "ADMIN" && (
+                      <MenuItem onClick={handleDashboard}>Admin Paneli</MenuItem>
+                    )}
                     <MenuItem onClick={logout}>Çıkış yap</MenuItem>
                   </Menu>
                 </div>

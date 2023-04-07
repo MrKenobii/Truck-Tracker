@@ -29,6 +29,10 @@ public class AuthController {
     public ResponseEntity<ForgotPasswordResponse> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest){
         return new ResponseEntity<ForgotPasswordResponse>(authService.forgotPassword(forgotPasswordRequest), HttpStatus.OK);
     }
+    @PutMapping("/activate-account/{userId}")
+    public ResponseEntity<ActivateAccountResponse> activateAccount(@PathVariable String userId, @RequestBody ActivateAccountRequest request){
+        return new ResponseEntity<>(authService.activateAccount(userId, request), HttpStatus.OK);
+    }
     @PutMapping("/update-password/{userId}")
     public ResponseEntity<UpdatePasswordResponse> forgotPassword(@RequestBody UpdatePasswordRequest updatePasswordRequest, @PathVariable String userId){
         return new ResponseEntity<UpdatePasswordResponse>(authService.updatePassword(updatePasswordRequest, userId), HttpStatus.OK);
