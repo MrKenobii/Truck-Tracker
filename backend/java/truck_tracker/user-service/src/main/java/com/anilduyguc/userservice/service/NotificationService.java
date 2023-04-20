@@ -14,10 +14,12 @@ public interface NotificationService {
     Notification getNotificationById(String id);
     Notification createNotification(Notification notification);
     Notification updateNotification(String id, Notification notification);
-    void deleteNotification(String id);
+    void deleteNotification(String id, String userId);
     SendNotificationResponse sendNotifications(String id, SendNotificationRequest notificationRequest);
 
     List<User> getUsersByNotification(String id);
 
     SaveNotificationResponse saveNotification(String id, SaveNotificationRequest request);
+
+    List<Notification> getNotificationByUserId(String userId);
 }

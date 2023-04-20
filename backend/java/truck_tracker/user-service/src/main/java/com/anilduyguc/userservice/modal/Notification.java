@@ -1,13 +1,15 @@
 package com.anilduyguc.userservice.modal;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Entity
 @Table(name = "notification")
@@ -20,6 +22,7 @@ public class Notification {
     private String id;
     private String content;
     private Integer emergencyLevel;
+    private LocalDateTime createdAt;
     @ManyToOne(cascade = {
             CascadeType.PERSIST,
             CascadeType.MERGE,

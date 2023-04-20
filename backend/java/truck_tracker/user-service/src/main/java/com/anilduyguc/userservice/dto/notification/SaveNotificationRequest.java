@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -15,6 +18,7 @@ public class SaveNotificationRequest {
     private String id;
     private String content;
     private Integer emergencyLevel;
-    private User sender;
+    private String senderId;
+//    private LocalDateTime createdAt;
 
 }

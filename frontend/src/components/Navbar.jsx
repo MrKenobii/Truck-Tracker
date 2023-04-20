@@ -120,15 +120,21 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    const fetchNotifications = async (token) => {
+      return await axios.get(`${BASE_URL}/notification/by-user/${user.id}`, {
+        headers: { Authorization: "Bearer " + token },
+      });
+    };
     const token = localStorage.getItem("token");
     if (token !== null) {
-      if (user.notifications.length > 0) {
-        if (notifications.length > 0) {
-          setNotifications((prev) => [...prev, user.notifications]);
-        } else {
-          setNotifications(user.notifications);
-        }
-      }
+          console.log("CHECKKK");
+          //setNotifications((prev) => [...prev, user.notifications]);
+        
+          fetchNotifications(token).then((res) => {
+            console.log(res.data);
+            setNotifications(res.data);
+          }).catch((error) => console.log(error));
+          //setNotifications(user.notifications);
     }
     console.log(notifications);
   }, []);

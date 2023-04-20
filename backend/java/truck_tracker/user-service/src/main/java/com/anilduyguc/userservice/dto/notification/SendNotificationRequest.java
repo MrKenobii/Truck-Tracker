@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @NoArgsConstructor
@@ -18,4 +21,5 @@ public class SendNotificationRequest {
     private String content;
     private Integer emergencyLevel;
     private List<UserRequest> users;
+    private LocalDateTime createdAt;
 }

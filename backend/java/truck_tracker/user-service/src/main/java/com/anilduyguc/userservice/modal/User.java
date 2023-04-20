@@ -39,6 +39,7 @@ public class User implements UserDetails {
     @JoinTable(name = "user_notifications",
             joinColumns = { @JoinColumn(name = "user_id") },
             inverseJoinColumns = { @JoinColumn(name = "notification_id") })
+    @JsonIgnore
     private List<Notification> notifications;
     @ManyToOne(cascade = {
             CascadeType.PERSIST,
@@ -56,9 +57,11 @@ public class User implements UserDetails {
     })
     @JoinColumn(name = "role_id")
     private Role role;
+
     @OneToOne(mappedBy = "user")
     @JsonIgnore
     private Truck truck;
+
     @OneToMany(mappedBy = "senderName", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Notification> senderNotification;

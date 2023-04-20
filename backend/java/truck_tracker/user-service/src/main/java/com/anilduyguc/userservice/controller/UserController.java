@@ -75,7 +75,7 @@ public class UserController {
         return new ResponseEntity<>(userService.getUserNotifications(id), HttpStatus.OK);
     }
     @GetMapping("/free-drivers")
-    public ResponseEntity<List<User>> getFreeDrivers(){
+    public ResponseEntity<List<User>> getFreeDrivers() {
         return new ResponseEntity<>(userService.getFreeDrivers(), HttpStatus.OK);
     }
 

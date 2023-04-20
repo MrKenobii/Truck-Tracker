@@ -59,8 +59,31 @@ const Map = () => {
       },
     ]);
   };
+  const canDeliver = () => {
+    console.log("CANDELIVER");
+    if (usersTruck) {
+      console.log(usersTruck);
+      console.log({
+        lat: Math.abs(
+          usersTruck?.latitude - usersTruck.destinationCity?.latitude
+        ),
+        lng: Math.abs(
+          usersTruck?.longitude - usersTruck.destinationCity?.longitude
+        ),
+      });
+      if (
+        Math.abs(usersTruck?.latitude - usersTruck?.destinationCity?.latitude) <
+          0.999 &&
+        Math.abs(
+          usersTruck?.longitude - usersTruck?.destinationCity?.longitude
+        ) < 0.999
+      ) {
+        return true;
+      } else return false;
+    } else return false;
+  };
   const callCops = (obj) => {
-    //console.log(obj);
+    console.log(obj);
     if (obj.hasOwnProperty("licensePlate")) {
       socket.emit("sendToCops", {
         senderName: user,
@@ -69,14 +92,10 @@ const Map = () => {
         emergencyLevel: 5,
       });
     } else {
-      const truck = trucks.find((t) => {
-        return t.user.id === user.id;
-      });
-      console.log(truck);
       socket.emit("sendToCops", {
         senderName: user,
         recievers: users,
-        content: `${obj.states}, ${obj.district} konumundaki '${truck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+        content: `${obj.states}, ${obj.district} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
         emergencyLevel: 5,
       });
     }
@@ -102,26 +121,25 @@ const Map = () => {
     return res.data;
   };
   const deliverGoods = async () => {
-      let res = await axios.put(`${BASE_URL}/truck/${user.id}/deliver`, {
+    await axios
+      .put(`${BASE_URL}/truck/${usersTruck.id}/deliver`, {
         headers: { Authorization: "Bearer " + localStorage.getItem("token") },
-      });
-      if(res.status === 200){
-        console.log(res.data);
-      } else {
-        console.log("error");
-      }
-
+      })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((er) => console.log(er));
   };
   const takeOff = async () => {
     let res = await axios.put(`${BASE_URL}/truck/${usersTruck.id}/take-off`, {
       headers: { Authorization: "Bearer " + localStorage.getItem("token") },
     });
-    if(res.status === 200){
+    if (res.status === 200) {
       console.log(res.data);
     } else {
       console.log("error");
     }
-  }
+  };
   const setTruckLocation = async (lat, lng, truck) => {
     return await axios.put(
       `${BASE_URL}/truck/${truck.id}/location`,
@@ -433,7 +451,9 @@ const Map = () => {
         );
       }
     };
+    setIsLoading(true);
     doWork();
+    setIsLoading(false);
     const interval = setInterval(() => {
       doWork();
     }, 1000 * 60);
@@ -441,6 +461,7 @@ const Map = () => {
       clearInterval(interval);
     };
   }, [localStorage.getItem("token")]);
+
   return isLoaded || isLoading ? (
     <GoogleMap
       mapContainerStyle={{ width: "100%", height: "100vh" }}
@@ -511,7 +532,7 @@ const Map = () => {
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
               {user.role.name === "TRUCK_DRIVER" && (
                 <>
-                  {usersTruck && usersTruck.tookOff ? (
+                  {usersTruck && !usersTruck.tookOff ? (
                     <Button
                       type="button"
                       fullWidth
@@ -520,7 +541,7 @@ const Map = () => {
                     >
                       Yola Çık
                     </Button>
-                  ) : (
+                  ) : canDeliver() ? (
                     <Button
                       type="button"
                       fullWidth
@@ -529,6 +550,18 @@ const Map = () => {
                     >
                       Teslim Et
                     </Button>
+                  ) : (
+                    <>
+                    <Button
+                      type="button"
+                      fullWidth
+                      variant="contained"
+                      disabled
+                    >
+                      Teslim Et
+                    </Button>
+                    <p>Varış noktasına yaklaşıldığında aktif olur</p>
+                    </>
                   )}
                 </>
               )}
@@ -737,7 +770,7 @@ const Map = () => {
           </MarkerF>
         ))}
       {/* {users &&
-        users.map((user, index) => (
+        users.filter(u => (u.role.name !== "NORMAL" || u.role.name !== "ADMIN")).map((user, index) => (
           <MarkerF
             key={index}
             position={{

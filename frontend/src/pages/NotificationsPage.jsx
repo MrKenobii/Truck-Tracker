@@ -12,12 +12,15 @@ import { BASE_URL } from "../constants/urls";
 import axios from "axios";
 import { Container, Grid, TextField } from "@mui/material";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../redux/features/userSlice";
+
 
 
 const NotificationsPage = () => {
   const { user } = useSelector((state) => state.user);
-  console.log(user);
+  const dispatch = useDispatch();
+  
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -28,7 +31,38 @@ const NotificationsPage = () => {
   const [roleName, setRoleName] = useState([]);
   const socket = useContext(SocketContext);
   const location = useLocation();
-  console.log(location);
+
+  const formatDate = (inputDate) => {
+    console.log(inputDate);
+    let date, month, year, hour, minute, second;
+    
+      date = inputDate.getDate();
+      month = inputDate.getMonth() + 1;
+      year = inputDate.getFullYear();
+      hour = inputDate.getHours();
+      minute = inputDate.getMinutes();
+      second = inputDate.getSeconds();
+    
+        date = date
+            .toString()
+            .padStart(2, '0');
+    
+        month = month
+            .toString()
+            .padStart(2, '0');
+        hour = hour
+            .toString()
+            .padStart(2, '0');
+        minute = minute
+            .toString()
+            .padStart(2, '0');
+        second = second
+            .toString()
+            .padStart(2, '0');
+    
+      return `${date}/${month}/${year} ${hour}:${minute}:${second}`;
+  
+  }
   const fetchUsers = async (token) => {
     return await axios.get(`${BASE_URL}/user`, {
       headers: { Authorization: "Bearer " + token },
@@ -39,19 +73,31 @@ const NotificationsPage = () => {
       headers: { Authorization: "Bearer " + token },
     });
   };
+  const fetchNotifications = async (token) => {
+    return await axios.get(`${BASE_URL}/notification/by-user/${user.id}`, {
+      headers: { Authorization: "Bearer " + token },
+    });
+  };
   const handleRead = (id) => {
-    console.log(id);
+    let url = `${BASE_URL}/notification/${id}/user/${user.id}`;
+    console.log(url);
+    console.log(localStorage.getItem("token"));
+    axios.delete(`${BASE_URL}/notification/${id}/user/${user.id}`, {
+      headers: `Bearer ${localStorage.getItem("token")}`
+    })
     setNotifications(
       notifications.filter((notif) => {
         if (notif.notif) {
-          console.log(notif.notif.id);
+          //console.log(notif.notif.id);
           return notif.notif.id !== id;
         } else {
-          console.log(notif.id);
+          //console.log(notif.id);
           return notif.id !== id;
         }
       })
     );
+
+    
   };
   const handleChangeRole = (event) => {
     const {
@@ -79,10 +125,8 @@ const NotificationsPage = () => {
       });
     } else {
       if (user.role.name === "ADMIN") {
-        const newUsers = users.filter(
-          (u) =>
-            u.role.name === "ADMIN" || u.role.name === "POLICE"
-        );
+        console.log("ADMIN");
+        console.log(users);
         socket.emit("sendNotification", {
           senderName: user,
           recievers: users,
@@ -103,6 +147,7 @@ const NotificationsPage = () => {
           emergencyLevel: 5,
         });
       } else {
+        console.log("BAŞKA");
         const newUsers = users.filter(
           (u) =>
             u.role.name === "ADMIN" || u.role.name === "POLICE_STATION"
@@ -126,31 +171,36 @@ const NotificationsPage = () => {
       console.log(id);
       fetchUsers(localStorage.getItem("token"))
         .then((usersData) => {
-          setNotifications(location.state.notifications);
           console.log(usersData.data);
-          console.log(location.state);
-          console.log(location.state.user);
-          console.log(location.state.notifications);
-          console.log(location.state.user.notifications);
           const filteredUsers = usersData.data.filter(
-            (u) => u.id !== location.state.user.id
+            (u) => u.id !== user.id
           );
+          console.log(filteredUsers);
           setUsers(filteredUsers);
         })
         .catch((err) => console.log(err));
       fetchRoles(localStorage.getItem("token"))
         .then((rolesData) => {
           if (rolesData.status === 200) {
-            console.log(rolesData.data);
+            //console.log(rolesData.data);
             setRoles(rolesData.data);
           } else {
             console.log("error");
           }
         })
         .catch((error) => console.log(error));
+      fetchNotifications(localStorage.getItem("token")).then((res) => {
+        console.log(res);
+        let sortedArr = res.data.sort(function(a,b){
+          // Turn your strings into dates, and then subtract them
+          // to get a value that is either negative, positive, or zero.
+          return new Date(b.date) - new Date(a.date);
+        });
+        console.log(sortedArr);
+        setNotifications(sortedArr);
+      }).catch((error) => console.log(error));
     }
   }, []);
-
   useEffect(() => {
     console.log("Second UseEffect");
     socket?.on("getNotification", (data) => {
@@ -219,7 +269,7 @@ const NotificationsPage = () => {
                         <>
                           {notification.senderName.name +
                             " " +
-                            notification.senderName.lastName}
+                            notification.senderName.lastName + " " + formatDate(new Date(notification.createdAt))}
                         </>
                       )}
                     </Typography>

@@ -10,9 +10,11 @@ import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.repository.NotificationRepository;
 import com.anilduyguc.userservice.repository.UserRepository;
 import com.anilduyguc.userservice.service.NotificationService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -52,9 +54,18 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void deleteNotification(String id) {
+    @Transactional
+    public void deleteNotification(String id, String userId) {
+        //User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("No user found with id: " + userId));
         Notification notification = notificationRepository.findById(id).orElseThrow(() -> new RuntimeException("Notification with id: " + id + " was not found"));
-        notificationRepository.delete(notification);
+
+        for(User u : notification.getUsers()){
+            u.getNotifications().remove(notification);
+        }
+
+        //notificationRepository.delete(notification);
+
+
     }
 
     @Override
@@ -69,6 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .content(notificationRequest.getContent())
                     .id(notificationId)
                     .emergencyLevel(notificationRequest.getEmergencyLevel())
+                    .createdAt(notificationRequest.getCreatedAt())
                     .senderName(sender)
                     .build());
             user.setNotifications(notifications);
@@ -96,28 +108,37 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public SaveNotificationResponse saveNotification(String id, SaveNotificationRequest request) {
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("No user found with id " + id));
-        User sender = userRepository.findById(request.getSender().getId()).orElseThrow(() -> new RuntimeException("No user found with id " + request.getSender().getId()));
-        List<User> userList = new ArrayList<>();
-
-        List<Notification> notifications = user.getNotifications();
+        User sender = userRepository.findById(request.getSenderId()).orElseThrow(() -> new RuntimeException("No user found with id " + request.getSenderId()));
+        //List<Notification> notifications = user.getNotifications();
+        //List<Notification> notifications = new ArrayList<>();
+        System.out.println("BEFORE " +user.getNotifications().size());
         Notification notification= Notification.builder()
                 .content(request.getContent())
                 .id(request.getId())
                 .emergencyLevel(request.getEmergencyLevel())
                 .senderName(sender)
+                .createdAt(LocalDateTime.now())
                 .build();
-        notifications.add(notification);
-        user.setNotifications(notifications);
-        userList.add(user);
+
+        //notifications.add(notification);
+        user.getNotifications().add(notification);
+        System.out.println("AFTER: " + user.getNotifications().size());
         userRepository.save(user);
 
         return SaveNotificationResponse.builder()
-                .sender(sender)
+                .senderId(sender.getId())
                 .emergencyLevel(notification.getEmergencyLevel())
                 .content(notification.getContent())
                 .id(notification.getId())
+                .createdAt(notification.getCreatedAt())
                 .message("Success")
                 .build();
+    }
+
+    @Override
+    public List<Notification> getNotificationByUserId(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("No user found with id " + userId));
+        return user.getNotifications();
     }
 
 
