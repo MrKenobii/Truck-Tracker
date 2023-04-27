@@ -44,8 +44,6 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const [cities, setCities] = useState([]);
   const [city, setCity] = useState("");
-  const [role, setRole] = useState("");
-  const [roles, setRoles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const fetchCities = async () => {
     let res = await axios.get(`${BASE_URL}/city`);
@@ -54,6 +52,9 @@ const SignUpPage = () => {
   const fetchRoles = async () => {
     let res = await axios.get(`${BASE_URL}/role`);
     return res.data;
+  };
+  const isValidEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
   };
   const register = async (payload) => {
     let res = await axios.post(`${BASE_URL}/auth/register`, payload);
@@ -85,17 +86,77 @@ const SignUpPage = () => {
             theme: "dark",
           });
         });
-      fetchRoles()
-        .then((data) => {
-          setIsLoading(true);
-          data = data.filter((r) => {
-            return r.name !== "ADMIN";
-          })
-          setRoles(data);
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          toast.error("Something went wrong !", {
+    }
+  }, []);
+  const handleChangeCity = (event) => {
+    setCity(event.target.value);
+    console.log(event.target.value);
+  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    if (
+      data.get("email") &&
+      data.get("password") &&
+      data.get("confirmPassword") &&
+      data.get("phone") &&
+      data.get("firstName") &&
+      data.get("lastName") &&
+      city
+    ) {
+      if (isValidEmail(data.get("email"))) {
+        if (data.get("confirmPassword") === data.get("password")) {
+          const payload = {
+            email: data.get("email"),
+            password: data.get("password"),
+            phoneNumber: data.get("phone"),
+            firstName: data.get("firstName"),
+            lastName: data.get("lastName"),
+            city,
+            role: "NORMAL",
+          };
+          register(payload)
+            .then((data) => {
+              console.log(data);
+              if (data.userId) {
+                toast.success("Başarıyla kayıt olundu!", {
+                  position: toast.POSITION.BOTTOM_CENTER,
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "dark",
+                });
+                navigate(`/activate-account/${data.userId}`);
+              } else {
+                toast.error(data.message, {
+                  position: toast.POSITION.BOTTOM_CENTER,
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "dark",
+                });
+              }
+            })
+            .catch((error) => {
+              toast.error("Bir şeyler ters gitti !", {
+                position: toast.POSITION.BOTTOM_CENTER,
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+              });
+            });
+        } else {
+          toast.error("Şifreler eşleşmiyor !", {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
             hideProgressBar: false,
@@ -105,73 +166,10 @@ const SignUpPage = () => {
             progress: undefined,
             theme: "dark",
           });
-        });
-    }
-  }, []);
-  const handleChangeCity = (event) => {
-    setCity(event.target.value);
-    console.log(event.target.value);
-  };
-  const handleChangeRole = (event) => {
-    setRole(event.target.value);
-    console.log(event.target.value);
-  };
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    if(data.get("email") && data.get("password") && data.get("confirmPassword") && data.get("phone") && data.get("firstName") && data.get("lastName") && city && role){
-      if (data.get("confirmPassword") === data.get("password")) {
-        const payload = {
-          email: data.get("email"),
-          password: data.get("password"),
-          phoneNumber: data.get("phone"),
-          firstName: data.get("firstName"),
-          lastName: data.get("lastName"),
-          city,
-          role,
-        };
-        register(payload)
-          .then((data) => {
-            console.log(data);
-            if(data.userId){
-              toast.success("Successfully logged in !", {
-                position: toast.POSITION.BOTTOM_CENTER,
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-              });
-              navigate(`/activate-account/${data.userId}`);
-            } else {
-              toast.error(data.message, {
-                position: toast.POSITION.BOTTOM_CENTER,
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-              });
-            }
-          })
-          .catch((error) => {
-            toast.error("Bir şeyler ters gitti !", {
-              position: toast.POSITION.BOTTOM_CENTER,
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
-          });
+
+        }
       } else {
-        toast.error("Şifreler eşleşmiyor !", {
+        toast.error("E-mail formatı yanlış !", {
           position: toast.POSITION.BOTTOM_CENTER,
           autoClose: 3000,
           hideProgressBar: false,
@@ -203,7 +201,7 @@ const SignUpPage = () => {
       name: data.get("firstName"),
       lastName: data.get("lastName"),
       city,
-      role,
+      role: "NORMAL",
     });
   };
   console.log(isLoading);
@@ -267,7 +265,7 @@ const SignUpPage = () => {
                       autoComplete="email"
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={6} sm={6}>
                     <TextField
                       required
                       fullWidth
@@ -290,24 +288,6 @@ const SignUpPage = () => {
                         {cities.map((city, index) => (
                           <MenuItem key={index} value={city.name}>
                             {city.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel id="select-label-role">Rol</InputLabel>
-                      <Select
-                        labelId="select-label-role"
-                        id="select-role"
-                        value={role}
-                        label="Rol"
-                        onChange={handleChangeRole}
-                      >
-                        {roles.map((role, index) => (
-                          <MenuItem key={index} value={role.name}>
-                            {role.name}
                           </MenuItem>
                         ))}
                       </Select>
@@ -336,14 +316,6 @@ const SignUpPage = () => {
                       autoComplete="confirm-password"
                     />
                   </Grid>
-                  {/* <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox value="allowExtraEmails" color="primary" />
-                      }
-                      label="I want to receive inspiration, marketing promotions and updates via email."
-                    />
-                  </Grid> */}
                 </Grid>
                 <Button
                   type="submit"
@@ -362,7 +334,7 @@ const SignUpPage = () => {
                 </Grid>
               </Box>
             </Box>
-            <Copyright sx={{ mt: 5 }} />
+            {/* <Copyright sx={{ mt: 5 }} /> */}
           </Container>
         </ThemeProvider>
       )}

@@ -154,6 +154,7 @@ public class TruckServiceImpl implements TruckService {
             truck.setFood(0);
             truck.setTent(0);
             truck.setStatus("Teslim edildi");
+            truck.setArrived(true);
             Truck savedTruck = truckRepository.save(truck);
             return TruckActionResponse.builder()
                     .truckId(truckId)

@@ -73,8 +73,15 @@ public class AuthService {
                 userById.setToken(jwt);
                 userById.setAccountActive(true);
                 userById.setAccountActivationToken(null);
-                userById.setStatus("ONLINE");
+                System.out.println(request);
+                if(request.isAdmin()) userById.setStatus("OFFLINE");
+                else userById.setStatus("ONLINE");
                 userRepository.save(userById);
+                try {
+                    emailService.sendActivationSuccessEmail(userById);
+                } catch (MessagingException e) {
+                    throw new RuntimeException(e);
+                }
                 return ActivateAccountResponse.builder()
                         .token(jwt)
                         .message("Hesabınız başarışıyla aktifleştirildi.")
@@ -166,9 +173,7 @@ public class AuthService {
 
 
     public User getUserById(String id) {
-        return userRepository.findById(id).orElseThrow(() -> {
-            throw new RuntimeException("User with id: " + id + " was not found");
-        });
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User with id: " + id + " was not found"));
     }
 
     public UpdatePasswordResponse updatePassword(UpdatePasswordRequest updatePasswordRequest, String userId) {
@@ -190,4 +195,6 @@ public class AuthService {
                     .build();
         }
     }
+
+
 }

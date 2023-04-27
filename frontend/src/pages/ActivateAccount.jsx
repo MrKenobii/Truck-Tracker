@@ -48,6 +48,7 @@ const ActivateAccount = () => {
            axios
              .put(`${BASE_URL}/auth/activate-account/${userId}`, {
                activationToken: data.get("token"),
+               admin: false
              })
              .then((res) => {
                console.log(res.data);

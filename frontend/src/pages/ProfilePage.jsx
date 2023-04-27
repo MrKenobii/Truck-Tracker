@@ -55,10 +55,10 @@ const ProfilePage = () => {
                 <Typography variant="h5" component="div">
                   {user.name + " " + user.lastName}
                 </Typography>
-                <Typography sx={{ mb: 1.5 }} color="text.primary">
+                <Typography component="div" variant="p" sx={{ mb: 1.5 }} color="text.primary">
                   {user.city.name}
                 </Typography>
-                <Typography sx={{ mb: 1.5 }} color="text.primary">
+                <Typography component="div" variant="p" sx={{ mb: 1.5 }} color="text.primary">
                   {user.email}
                 </Typography>
                 <Typography variant="body2">{user.phoneNumber}</Typography>

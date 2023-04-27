@@ -40,7 +40,7 @@ const Map = () => {
   const [cities, setCities] = useState([]);
   const [urgentCities, setUrgentCities] = useState([]);
   const [usersTruck, setUsersTruck] = useState(null);
-
+  const [isDelivered, setIsDelivered] = useState(false);
   const [users, setUsers] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [updatedUser, setUpdatedUser] = useState({});
@@ -60,7 +60,6 @@ const Map = () => {
     ]);
   };
   const canDeliver = () => {
-    console.log("CANDELIVER");
     if (usersTruck) {
       console.log(usersTruck);
       console.log({
@@ -120,13 +119,45 @@ const Map = () => {
     );
     return res.data;
   };
-  const deliverGoods = async () => {
-    await axios
+  const deliverGoods = () => {
+    axios
       .put(`${BASE_URL}/truck/${usersTruck.id}/deliver`, {
         headers: { Authorization: "Bearer " + localStorage.getItem("token") },
       })
-      .then((data) => {
-        console.log(data);
+      .then((res) => {
+        if (res.status === 200) {
+          setIsDelivered(true);
+          const newUsers = users.filter(
+            (u) => u.role.name === "ADMIN" || u.role.name === "POLICE"
+          );
+          socket.emit("sendNotification", {
+            senderName: user,
+            recievers: newUsers,
+            content: `${res.data.licensePlate} plakalı tır mallarını ${usersTruck.destinationCity.name} şehrine başarıyla teslim etti.`,
+            emergencyLevel: 5,
+          });
+          toast.success(`${res.data.message}`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else {
+          toast.error(`Birşeyler ters gitti!`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
       })
       .catch((er) => console.log(er));
   };
@@ -366,6 +397,8 @@ const Map = () => {
                   });
                   console.log(truck);
                   setUsersTruck(truck);
+                  console.log(truck);
+                  setIsDelivered(truck.arrived);
                   setTruckLocation(
                     position.coords.latitude,
                     position.coords.longitude,
@@ -541,7 +574,22 @@ const Map = () => {
                     >
                       Yola Çık
                     </Button>
-                  ) : canDeliver() ? (
+                  ) : isDelivered ? (
+                    <Card
+                            sx={{
+                              height: "%50",
+                              minWidth: 275,
+                              backgroundColor: "#1876D1",
+                              color: "white",
+                            }}
+                          >
+                            <CardContent>
+                              <Typography variant="h6" component="p" sx={{ fontSize: 12}}>
+                                Malları teslim ettiniz
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                  ) : !canDeliver() ? (
                     <Button
                       type="button"
                       fullWidth
@@ -552,15 +600,15 @@ const Map = () => {
                     </Button>
                   ) : (
                     <>
-                    <Button
-                      type="button"
-                      fullWidth
-                      variant="contained"
-                      disabled
-                    >
-                      Teslim Et
-                    </Button>
-                    <p>Varış noktasına yaklaşıldığında aktif olur</p>
+                      <Button
+                        type="button"
+                        fullWidth
+                        variant="contained"
+                        disabled
+                      >
+                        Teslim Et
+                      </Button>
+                      <p>Varış noktasına yaklaşıldığında aktif olur</p>
                     </>
                   )}
                 </>
@@ -666,7 +714,7 @@ const Map = () => {
                             }}
                           >
                             <CardContent>
-                              <Typography variant="h6" component="div">
+                              <Typography variant="h6" component="div" sx={{ fontSize: 12}}>
                                 Polis eşlik ediyor
                               </Typography>
                             </CardContent>
@@ -686,7 +734,7 @@ const Map = () => {
                             }}
                           >
                             <CardContent>
-                              <Typography variant="h6" component="div">
+                              <Typography variant="h6" component="div" sx={{ fontSize: 15}}>
                                 Polis eşlik ediyor
                               </Typography>
                             </CardContent>
@@ -706,7 +754,7 @@ const Map = () => {
                             }}
                           >
                             <CardContent>
-                              <Typography variant="h6" component="div">
+                              <Typography variant="h6" component="div" sx={{ fontSize: 15}}>
                                 Tıra eşlik edilmiyor
                               </Typography>
                             </CardContent>

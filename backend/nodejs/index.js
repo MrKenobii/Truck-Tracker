@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
       );
       recievers.map((reciverName) => {
         const receiver = getUser(reciverName.username);
-        //if(receiver && (reciverName.role.name === "ADMIN" || reciverName.role.name === "POLICE_STATION")){
+        
         if (receiver) {
           console.log("------SENDER------");
           console.log("Sender: " + senderName.username);
@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
               emergencyLevel,
             },
           };
-          //addNotification(receiver.socketId, payload);
+          
           axios
             .post(
               `http://localhost:8080/api/v1/notification/${reciverName.id}/save`,
@@ -121,7 +121,7 @@ io.on("connection", (socket) => {
             })
             .catch((err) => console.log(err));
         }
-        //}
+        
       });
     }
   );
@@ -141,14 +141,43 @@ io.on("connection", (socket) => {
             reciverName.role.name === "POLICE_STATION" ||
             reciverName.role.name === "POLICE")
         ) {
-          io.to(receiver.socketId).emit("getNotification", {
+          const payload = {
             senderName,
             notif: {
               id: uuidv4(),
               content,
               emergencyLevel,
             },
-          });
+          };
+
+          axios
+            .post(
+              `http://localhost:8080/api/v1/notification/${reciverName.id}/save`,
+              {
+                id: payload.notif.id,
+                content: payload.notif.content,
+                emergencyLevel: payload.notif.emergencyLevel,
+                senderId: payload.senderName.id,
+              },
+              {
+                headers: { Authorization: `Bearer ${reciverName.token}` },
+              }
+            )
+            .then((data) => {
+              console.log("SUBMIT")
+              console.log(data.data);
+              
+              io.to(receiver.socketId).emit("getNotification", {
+                senderName: payload.senderName,
+                notif: {
+                  id: payload.notif.id,
+                  content: payload.notif.content,
+                  emergencyLevel: payload.notif.emergencyLevel,
+                  createdAt: data.data.createdAt,
+                },
+              });
+            })
+            .catch((err) => console.log(err));
         }
       });
     }

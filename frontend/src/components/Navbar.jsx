@@ -127,7 +127,6 @@ const Navbar = () => {
     };
     const token = localStorage.getItem("token");
     if (token !== null) {
-          console.log("CHECKKK");
           //setNotifications((prev) => [...prev, user.notifications]);
         
           fetchNotifications(token).then((res) => {
@@ -240,7 +239,7 @@ const Navbar = () => {
                       key={index}
                     >
                       <MenuItem key={index} onClick={handleCloseNavMenu}>
-                        <Typography textAlign="center">{page.name}</Typography>
+                        <Typography textAlign="center" variant="h7" component="p">{page.name}</Typography>
                       </MenuItem>
                     </Link>
                   ))}
@@ -255,21 +254,12 @@ const Navbar = () => {
                         style={{ textDecoration: "none", color: "inherit" }}
                       >
                         <MenuItem onClick={handleCloseNavMenu}>
-                          <Typography textAlign="center">
-                            Bildirimler{" "}
-                            {notifications.length > 0 && notifications.length}
-                          </Typography>
-                        </MenuItem>
-                      </Link>
-                      <Link
-                        to={`messages/${user.id}`}
-                        state={{ user }}
-                        style={{ textDecoration: "none", color: "inherit" }}
-                      >
-                        <MenuItem>
-                          <Typography textAlign="center">
-                            Mesajlar{" "}
-                            {notifications.length > 0 && notifications.length}
+                          <Typography textAlign="center" variant="h7" component="p">
+                            {notifications.length && notifications.length > 0 ? (
+                              <p> Bildirimler ({notifications.length})</p>
+                            ) : (
+                              <p>Bildirimler</p>
+                            )}
                           </Typography>
                         </MenuItem>
                       </Link>
@@ -341,22 +331,6 @@ const Navbar = () => {
                           color="primary"
                         >
                           <NotificationsIcon />
-                        </StyledBadge>
-                      </IconButton>
-                    </Link>
-                    <Link
-                      to={`messages/${user.id}`}
-                      style={{ margin: "20px 10px" }}
-                    >
-                      <IconButton
-                        aria-label="message"
-                        style={{ color: "white" }}
-                      >
-                        <StyledBadge
-                          badgeContent={notifications.length}
-                          color="primary"
-                        >
-                          <EmailIcon />
                         </StyledBadge>
                       </IconButton>
                     </Link>

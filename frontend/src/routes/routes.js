@@ -56,11 +56,6 @@ import UsersPage from "../pages/UsersPage";
         state: "notifications"
     },
     {
-        path: "/messages/:id",
-        element: <MessagesPage user messages socket />,
-        state: "messages"
-    },
-    {
         path: "/profile/:userId",
         element: <ProfilePage user />,
         state: "profile-page"

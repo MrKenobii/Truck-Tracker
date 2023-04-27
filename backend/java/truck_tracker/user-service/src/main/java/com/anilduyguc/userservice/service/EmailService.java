@@ -9,4 +9,6 @@ public interface EmailService {
     void sendHtmlEmailForgotPassword(User user) throws MessagingException;
 
     void sendHtmlEmailActivateAccount(User user) throws MessagingException;
+
+    void sendActivationSuccessEmail(User userById) throws MessagingException;
 }

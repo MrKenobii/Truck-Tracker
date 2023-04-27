@@ -15,12 +15,10 @@ import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../redux/features/userSlice";
 
-
-
 const NotificationsPage = () => {
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  
+
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -35,34 +33,23 @@ const NotificationsPage = () => {
   const formatDate = (inputDate) => {
     console.log(inputDate);
     let date, month, year, hour, minute, second;
-    
-      date = inputDate.getDate();
-      month = inputDate.getMonth() + 1;
-      year = inputDate.getFullYear();
-      hour = inputDate.getHours();
-      minute = inputDate.getMinutes();
-      second = inputDate.getSeconds();
-    
-        date = date
-            .toString()
-            .padStart(2, '0');
-    
-        month = month
-            .toString()
-            .padStart(2, '0');
-        hour = hour
-            .toString()
-            .padStart(2, '0');
-        minute = minute
-            .toString()
-            .padStart(2, '0');
-        second = second
-            .toString()
-            .padStart(2, '0');
-    
-      return `${date}/${month}/${year} ${hour}:${minute}:${second}`;
-  
-  }
+
+    date = inputDate.getDate();
+    month = inputDate.getMonth() + 1;
+    year = inputDate.getFullYear();
+    hour = inputDate.getHours();
+    minute = inputDate.getMinutes();
+    second = inputDate.getSeconds();
+
+    date = date.toString().padStart(2, "0");
+
+    month = month.toString().padStart(2, "0");
+    hour = hour.toString().padStart(2, "0");
+    minute = minute.toString().padStart(2, "0");
+    second = second.toString().padStart(2, "0");
+
+    return `${date}/${month}/${year} ${hour}:${minute}:${second}`;
+  };
   const fetchUsers = async (token) => {
     return await axios.get(`${BASE_URL}/user`, {
       headers: { Authorization: "Bearer " + token },
@@ -83,8 +70,8 @@ const NotificationsPage = () => {
     console.log(url);
     console.log(localStorage.getItem("token"));
     axios.delete(`${BASE_URL}/notification/${id}/user/${user.id}`, {
-      headers: `Bearer ${localStorage.getItem("token")}`
-    })
+      headers: `Bearer ${localStorage.getItem("token")}`,
+    });
     setNotifications(
       notifications.filter((notif) => {
         if (notif.notif) {
@@ -96,8 +83,6 @@ const NotificationsPage = () => {
         }
       })
     );
-
-    
   };
   const handleChangeRole = (event) => {
     const {
@@ -133,10 +118,9 @@ const NotificationsPage = () => {
           content: message,
           emergencyLevel: 5,
         });
-      } else if(user.role.name === "POLICE_STATION"){
+      } else if (user.role.name === "POLICE_STATION") {
         const newUsers = users.filter(
-          (u) =>
-            u.role.name === "ADMIN" || u.role.name === "POLICE"
+          (u) => u.role.name === "ADMIN" || u.role.name === "POLICE"
         );
         console.log(newUsers);
         console.log(users);
@@ -149,8 +133,7 @@ const NotificationsPage = () => {
       } else {
         console.log("BAŞKA");
         const newUsers = users.filter(
-          (u) =>
-            u.role.name === "ADMIN" || u.role.name === "POLICE_STATION"
+          (u) => u.role.name === "ADMIN" || u.role.name === "POLICE_STATION"
         );
         console.log(newUsers);
         console.log(users);
@@ -165,16 +148,14 @@ const NotificationsPage = () => {
   };
 
   useEffect(() => {
-    if (id !== user.id) {
+    if (id !== user.id || user.role.name === "NORMAL") {
       navigate("/not-found");
     } else {
       console.log(id);
       fetchUsers(localStorage.getItem("token"))
         .then((usersData) => {
-          console.log(usersData.data);
-          const filteredUsers = usersData.data.filter(
-            (u) => u.id !== user.id
-          );
+          //console.log(usersData.data);
+          const filteredUsers = usersData.data.filter((u) => u.id !== user.id);
           console.log(filteredUsers);
           setUsers(filteredUsers);
         })
@@ -189,23 +170,26 @@ const NotificationsPage = () => {
           }
         })
         .catch((error) => console.log(error));
-      fetchNotifications(localStorage.getItem("token")).then((res) => {
-        console.log(res);
-        let sortedArr = res.data.sort(function(a,b){
-          // Turn your strings into dates, and then subtract them
-          // to get a value that is either negative, positive, or zero.
-          return new Date(b.date) - new Date(a.date);
-        });
-        console.log(sortedArr);
-        setNotifications(sortedArr);
-      }).catch((error) => console.log(error));
+      fetchNotifications(localStorage.getItem("token"))
+        .then((res) => {
+          console.log(res.data);
+          
+          let sortedArr = res.data.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          console.log(sortedArr);
+          setNotifications(sortedArr);
+        })
+        .catch((error) => console.log(error));
     }
   }, []);
   useEffect(() => {
     console.log("Second UseEffect");
     socket?.on("getNotification", (data) => {
       console.log(data);
-      setNotifications((prev) => [...prev, data]);
+      console.log(notifications);
+      setNotifications((prev) => [data, ...prev]);
+      console.log(notifications);
     });
   }, [socket]);
 
@@ -267,9 +251,25 @@ const NotificationsPage = () => {
                     >
                       {notification.senderName && (
                         <>
-                          {notification.senderName.name +
-                            " " +
-                            notification.senderName.lastName + " " + formatDate(new Date(notification.createdAt))}
+                          {notification.notif ? (
+                            <>
+                              {notification.senderName.name +
+                                " " +
+                                notification.senderName.lastName +
+                                " " +
+                                formatDate(
+                                  new Date(notification.notif.createdAt)
+                                )}
+                            </>
+                          ) : (
+                            <>
+                              {notification.senderName.name +
+                                " " +
+                                notification.senderName.lastName +
+                                " " +
+                                formatDate(new Date(notification.createdAt))}
+                            </>
+                          )}
                         </>
                       )}
                     </Typography>

@@ -20,10 +20,10 @@ const NotFoundPage = () => {
       <Container maxWidth="md">
         <Grid container spacing={2}>
           <Grid xs={6}>
-            <Typography variant="h1">
+            <Typography variant="h1" component="p">
               404
             </Typography>
-            <Typography variant="h6">
+            <Typography variant="h6" component="p">
               Aradığınız sayfa bulunamadı.
             </Typography>
             <Button variant="contained" onClick={handleClick}>Ana menüye dön</Button>

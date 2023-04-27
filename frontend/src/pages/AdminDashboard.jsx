@@ -11,6 +11,7 @@ import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { Grid } from "@mui/material";
+import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
@@ -20,11 +21,41 @@ const AdminDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const activateUser = (_user) => {
-
-  }
-  const deleteUser = (_user) => {
-
-  }
+    console.log(_user);
+    setUsers(users.filter((u) => u.id !== _user.id));
+    axios
+      .put(`${BASE_URL}/auth/activate-account/${_user.id}`, {
+        activationToken: _user.accountActivationToken,
+        admin: true
+      })
+      .then((res) => {
+        console.log(res.data);
+        if (res.status === 200) {
+          toast.success(`${_user.name + " " + _user.lastName} adlı kullanıcının hesabı başarıyla aktive edildi.`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else {
+          toast.error(`${res.data.message}`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
+      });
+  };
+  const deleteUser = (_user) => {};
   const getRoleByName = (role) => {
     if (role === "POLICE") return "POLİS";
     else if (role === "POLICE_STATION") return "KARAKOL";
@@ -50,7 +81,14 @@ const AdminDashboard = () => {
         getUsers()
           .then((usersData) => {
             console.log(usersData);
-            setUsers(usersData.filter((u) => !u.accountActive && u.role.name !== "ADMIN" && u.id !== user.id));
+            setUsers(
+              usersData.filter(
+                (u) =>
+                  !u.accountActive &&
+                  u.role.name !== "ADMIN" &&
+                  u.id !== user.id
+              )
+            );
           })
           .catch((err) => console.log(err));
       }
@@ -86,6 +124,8 @@ const AdminDashboard = () => {
                     sx={{ mb: 1.5 }}
                     color="text.secondary"
                     sx={{ color: "white" }}
+                    component="p"
+                    variant="body2"
                   >
                     {"E-mail: " + _user.email}
                   </Typography>
@@ -93,6 +133,8 @@ const AdminDashboard = () => {
                     sx={{ mb: 1.5 }}
                     color="text.secondary"
                     sx={{ color: "white" }}
+                    component="p"
+                    variant="body2"
                   >
                     {"Rol: " + getRoleByName(_user.role.name)}
                   </Typography>
@@ -100,10 +142,17 @@ const AdminDashboard = () => {
                     sx={{ mb: 1.5 }}
                     color="text.secondary"
                     sx={{ color: "white" }}
+                    component="p"
+                    variant="body2"
                   >
                     {"Telefon No: " + _user.phoneNumber}
                   </Typography>
-                  <Typography color="text.secondary" sx={{ color: "white" }}>
+                  <Typography
+                    component="p"
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ color: "white" }}
+                  >
                     {"Şehir : " + _user.city.name}
                   </Typography>
                 </CardContent>
@@ -113,7 +162,7 @@ const AdminDashboard = () => {
                     color="success"
                     variant="contained"
                     size="small"
-                    onClick={activateUser(_user)}
+                    onClick={() => activateUser(_user)}
                     sx={{ mt: 1, mb: 2 }}
                   >
                     Aktive et
@@ -124,7 +173,7 @@ const AdminDashboard = () => {
                     size="small"
                     variant="contained"
                     sx={{ mt: 1, mb: 2 }}
-                    onClick={deleteUser(_user)}
+                    onClick={() => deleteUser(_user)}
                   >
                     Kullanıcıyı sil
                   </Button>
