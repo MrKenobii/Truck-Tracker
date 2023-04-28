@@ -21,16 +21,18 @@ const AdminDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const activateUser = (_user) => {
-    console.log(_user);
-    setUsers(users.filter((u) => u.id !== _user.id));
+    console.log(_user.smsActivationToken);
+    console.log(_user.accountActivationToken);
     axios
       .put(`${BASE_URL}/auth/activate-account/${_user.id}`, {
         activationToken: _user.accountActivationToken,
+        activationSmsToken: _user.smsActivationToken,
         admin: true
       })
       .then((res) => {
         console.log(res.data);
         if (res.status === 200) {
+          setUsers(users.filter((u) => u.id !== _user.id));
           toast.success(`${_user.name + " " + _user.lastName} adlı kullanıcının hesabı başarıyla aktive edildi.`, {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
@@ -55,7 +57,39 @@ const AdminDashboard = () => {
         }
       });
   };
-  const deleteUser = (_user) => {};
+  const deleteUser = async (_user) => {
+      await axios.delete(`${BASE_URL}/user/${_user.id}`, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      }).then((res) => {
+        if(res.status === 200){
+          setUsers(users.filter((u) => u.id !== _user.id));
+          toast.warning(`${_user.name + " " + _user.lastName} adlı kullanıcının hesabı başarıyla silindi.`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else {
+          toast.error("Silme işlemi başarısız", {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
+      }).catch(err => console.log(err));
+      
+  };
   const getRoleByName = (role) => {
     if (role === "POLICE") return "POLİS";
     else if (role === "POLICE_STATION") return "KARAKOL";

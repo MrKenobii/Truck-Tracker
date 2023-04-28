@@ -2,6 +2,7 @@ package com.anilduyguc.userservice.controller;
 
 import com.anilduyguc.userservice.dto.Location;
 import com.anilduyguc.userservice.dto.truck.TruckActionResponse;
+import com.anilduyguc.userservice.dto.truck.TruckEscortResponse;
 import com.anilduyguc.userservice.dto.truck.TruckSaveRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
@@ -60,6 +61,10 @@ public class TruckController {
     @PutMapping("/{truckId}/user/{userId}")
     public ResponseEntity<Truck> setDriver(@PathVariable String truckId, @PathVariable String userId){
         return new ResponseEntity<>(truckService.setDriver(truckId, userId), HttpStatus.OK);
+    }
+    @PutMapping("/{truckId}/escort/user/{userId}")
+    public ResponseEntity<TruckEscortResponse> escortTruck(@PathVariable String truckId, @PathVariable String userId){
+        return new ResponseEntity<>(truckService.escortTruck(truckId, userId), HttpStatus.OK);
     }
     @PutMapping("/{truckId}/deliver")
     public ResponseEntity<TruckActionResponse> deliverGoods(@PathVariable String truckId){

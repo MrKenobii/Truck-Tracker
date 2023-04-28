@@ -36,11 +36,15 @@ const Map = () => {
   const [showInfoWindow, setInfoWindowFlag] = useState(true);
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
+  const [markLatitude, setMarkLatitude] = useState(null);
+  const [markLongitude, setMarkLongitude] = useState(null);
   const [trucks, setTrucks] = useState([]);
   const [cities, setCities] = useState([]);
   const [urgentCities, setUrgentCities] = useState([]);
   const [usersTruck, setUsersTruck] = useState(null);
   const [isDelivered, setIsDelivered] = useState(false);
+  const [isTookOff, setIsTookOff] = useState(false);
+  const [isEscorted, setIsEscorted] = useState(false);
   const [users, setUsers] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [updatedUser, setUpdatedUser] = useState({});
@@ -51,13 +55,17 @@ const Map = () => {
   const socket = useContext(SocketContext);
 
   const handleMapLeftClick = (e) => {
-    setMarkers((current) => [
-      ...current,
-      {
-        lat: e.latLng.lat(),
-        lng: e.latLng.lng(),
-      },
-    ]);
+    if(user.role.name === "ADMIN"){
+      setMarkLongitude(e.latLng.lng());
+      setMarkLatitude(e.latLng.lat());
+      setMarkers((current) => [
+        ...current,
+        {
+          lat: e.latLng.lat(),
+          lng: e.latLng.lng(),
+        },
+      ]);
+    }
   };
   const canDeliver = () => {
     if (usersTruck) {
@@ -100,6 +108,8 @@ const Map = () => {
     }
   };
   const removeMarker = (marker) => {
+    setMarkLongitude(null);
+    setMarkLatitude(null);
     const newMarkers = markers.filter(
       (m) => m.lat !== marker.lat && m.lng !== marker.lng
     );
@@ -167,6 +177,41 @@ const Map = () => {
     });
     if (res.status === 200) {
       console.log(res.data);
+      setIsTookOff(true);
+      toast.success(`${res.data.message}`, {
+        position: toast.POSITION.BOTTOM_CENTER,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    } else {
+      console.log("error");
+    }
+  };
+  const escortTruck = async (truck) => {
+    console.log(truck);
+    let res = await axios.put(
+      `${BASE_URL}/truck/${truck.id}/escort/user/${user.id}`,
+      {
+        headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+      }
+    );
+    if (res.status === 200) {
+      console.log(res.data);
+      toast.success(`${res.data.message}`, {
+        position: toast.POSITION.BOTTOM_CENTER,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
     } else {
       console.log("error");
     }
@@ -399,6 +444,8 @@ const Map = () => {
                   setUsersTruck(truck);
                   console.log(truck);
                   setIsDelivered(truck.arrived);
+                  setIsTookOff(truck.tookOff);
+                  setIsEscorted(truck.escorted);
                   setTruckLocation(
                     position.coords.latitude,
                     position.coords.longitude,
@@ -423,16 +470,17 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                toast.error("Hata !", {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                  autoClose: 3000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                  theme: "dark",
-                });
+                // toast.error("Hata !", {
+                //   position: toast.POSITION.BOTTOM_CENTER,
+                //   autoClose: 3000,
+                //   hideProgressBar: false,
+                //   closeOnClick: true,
+                //   pauseOnHover: true,
+                //   draggable: true,
+                //   progress: undefined,
+                //   theme: "dark",
+                // });
+                console.log(error);
               });
 
             fetchCities()
@@ -448,16 +496,17 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                toast.error("Hata !", {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                  autoClose: 3000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                  theme: "dark",
-                });
+                // toast.error("Hata !", {
+                //   position: toast.POSITION.BOTTOM_CENTER,
+                //   autoClose: 3000,
+                //   hideProgressBar: false,
+                //   closeOnClick: true,
+                //   pauseOnHover: true,
+                //   draggable: true,
+                //   progress: undefined,
+                //   theme: "dark",
+                // });
+                console.log(error);
               });
             fetchUsers()
               .then((data) => {
@@ -498,7 +547,7 @@ const Map = () => {
   return isLoaded || isLoading ? (
     <GoogleMap
       mapContainerStyle={{ width: "100%", height: "100vh" }}
-      center={{ lat: latitude, lng: longitude }}
+      center={{ lat: markLatitude ? markLatitude : latitude, lng: markLongitude ? markLongitude : longitude }}
       zoom={10}
       onClick={handleMapLeftClick}
     >
@@ -565,7 +614,7 @@ const Map = () => {
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
               {user.role.name === "TRUCK_DRIVER" && (
                 <>
-                  {usersTruck && !usersTruck.tookOff ? (
+                  {!isTookOff ? (
                     <Button
                       type="button"
                       fullWidth
@@ -576,19 +625,23 @@ const Map = () => {
                     </Button>
                   ) : isDelivered ? (
                     <Card
-                            sx={{
-                              height: "%50",
-                              minWidth: 275,
-                              backgroundColor: "#1876D1",
-                              color: "white",
-                            }}
-                          >
-                            <CardContent>
-                              <Typography variant="h6" component="p" sx={{ fontSize: 12}}>
-                                Malları teslim ettiniz
-                              </Typography>
-                            </CardContent>
-                          </Card>
+                      sx={{
+                        height: "%50",
+                        minWidth: 275,
+                        backgroundColor: "#1876D1",
+                        color: "white",
+                      }}
+                    >
+                      <CardContent>
+                        <Typography
+                          variant="h6"
+                          component="p"
+                          sx={{ fontSize: 12 }}
+                        >
+                          Malları teslim ettiniz
+                        </Typography>
+                      </CardContent>
+                    </Card>
                   ) : !canDeliver() ? (
                     <Button
                       type="button"
@@ -613,7 +666,7 @@ const Map = () => {
                   )}
                 </>
               )}
-              {user.role.name === "TRUCK_DRIVER" && (
+              {user.role.name === "TRUCK_DRIVER" &&  !usersTruck.escorted && (
                 <Button
                   type="button"
                   fullWidth
@@ -631,7 +684,7 @@ const Map = () => {
       </MarkerF>
 
       {trucks &&
-        trucks.map((truck, index) => (
+        trucks.filter(t => !t.arrived).map((truck, index) => (
           <div key={index}>
             {truck.user.id !== user.id && (
               <MarkerF
@@ -714,7 +767,11 @@ const Map = () => {
                             }}
                           >
                             <CardContent>
-                              <Typography variant="h6" component="div" sx={{ fontSize: 12}}>
+                              <Typography
+                                variant="h6"
+                                component="div"
+                                sx={{ fontSize: 12 }}
+                              >
                                 Polis eşlik ediyor
                               </Typography>
                             </CardContent>
@@ -734,7 +791,11 @@ const Map = () => {
                             }}
                           >
                             <CardContent>
-                              <Typography variant="h6" component="div" sx={{ fontSize: 15}}>
+                              <Typography
+                                variant="h6"
+                                component="div"
+                                sx={{ fontSize: 15 }}
+                              >
                                 Polis eşlik ediyor
                               </Typography>
                             </CardContent>
@@ -754,10 +815,26 @@ const Map = () => {
                             }}
                           >
                             <CardContent>
-                              <Typography variant="h6" component="div" sx={{ fontSize: 15}}>
+                              <Typography
+                                variant="h6"
+                                component="div"
+                                sx={{ fontSize: 15 }}
+                              >
                                 Tıra eşlik edilmiyor
                               </Typography>
                             </CardContent>
+                            {user.role.name === "POLICE" && (
+                              <CardActions>
+                                <Button
+                                  variant="contained"
+                                  color="warning"
+                                  size="small"
+                                  onClick={() => escortTruck(truck)}
+                                >
+                                  Tıra eşlik et!
+                                </Button>
+                              </CardActions>
+                            )}
                           </Card>
                         )}
                     </div>
@@ -817,8 +894,8 @@ const Map = () => {
             ) : null}
           </MarkerF>
         ))}
-      {/* {users &&
-        users.filter(u => (u.role.name !== "NORMAL" || u.role.name !== "ADMIN")).map((user, index) => (
+      { user.role.name === "ADMIN" && users &&
+        users.filter(u => (u.role.name !== "NORMAL" && u.role.name !== "ADMIN")).map((user, index) => (
           <MarkerF
             key={index}
             position={{
@@ -852,7 +929,7 @@ const Map = () => {
               </InfoWindowF>
             ) : null}
           </MarkerF>
-        ))} */}
+        ))}
     </GoogleMap>
   ) : (
     <LoadingComponent />

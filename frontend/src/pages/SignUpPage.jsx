@@ -105,21 +105,47 @@ const SignUpPage = () => {
       city
     ) {
       if (isValidEmail(data.get("email"))) {
-        if (data.get("confirmPassword") === data.get("password")) {
-          const payload = {
-            email: data.get("email"),
-            password: data.get("password"),
-            phoneNumber: data.get("phone"),
-            firstName: data.get("firstName"),
-            lastName: data.get("lastName"),
-            city,
-            role: "NORMAL",
-          };
-          register(payload)
-            .then((data) => {
-              console.log(data);
-              if (data.userId) {
-                toast.success("Başarıyla kayıt olundu!", {
+        if(data.get("phone").startsWith("5") && data.get("phone").length === 10){
+          if (data.get("confirmPassword") === data.get("password")) {
+            const payload = {
+              email: data.get("email"),
+              password: data.get("password"),
+              phoneNumber: data.get("phone"),
+              firstName: data.get("firstName"),
+              lastName: data.get("lastName"),
+              city,
+              role: "NORMAL",
+            };
+            register(payload)
+              .then((data) => {
+                console.log(data);
+                if (data.userId) {
+                  toast.success("Başarıyla kayıt olundu!", {
+                    position: toast.POSITION.BOTTOM_CENTER,
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                  });
+                  navigate(`/activate-account/${data.userId}`);
+                } else {
+                  toast.error(data.message, {
+                    position: toast.POSITION.BOTTOM_CENTER,
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                  });
+                }
+              })
+              .catch((error) => {
+                toast.error("Bir şeyler ters gitti !", {
                   position: toast.POSITION.BOTTOM_CENTER,
                   autoClose: 3000,
                   hideProgressBar: false,
@@ -129,34 +155,21 @@ const SignUpPage = () => {
                   progress: undefined,
                   theme: "dark",
                 });
-                navigate(`/activate-account/${data.userId}`);
-              } else {
-                toast.error(data.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                  autoClose: 3000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                  theme: "dark",
-                });
-              }
-            })
-            .catch((error) => {
-              toast.error("Bir şeyler ters gitti !", {
-                position: toast.POSITION.BOTTOM_CENTER,
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
               });
+          } else {
+            toast.error("Şifreler eşleşmiyor !", {
+              position: toast.POSITION.BOTTOM_CENTER,
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
             });
-        } else {
-          toast.error("Şifreler eşleşmiyor !", {
+          }
+        } else {
+          toast.error("Telefon numarası formatını yanlış girdiniz!", {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
             hideProgressBar: false,
@@ -166,7 +179,6 @@ const SignUpPage = () => {
             progress: undefined,
             theme: "dark",
           });
-
         }
       } else {
         toast.error("E-mail formatı yanlış !", {
@@ -270,7 +282,7 @@ const SignUpPage = () => {
                       required
                       fullWidth
                       id="phone"
-                      label="Telefon numarası"
+                      label="Telefon numarası (5xxxxxxx)"
                       name="phone"
                       autoComplete="phone"
                     />

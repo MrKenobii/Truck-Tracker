@@ -2,6 +2,7 @@ package com.anilduyguc.userservice.service.impl;
 
 import com.anilduyguc.userservice.dto.Location;
 import com.anilduyguc.userservice.dto.truck.TruckActionResponse;
+import com.anilduyguc.userservice.dto.truck.TruckEscortResponse;
 import com.anilduyguc.userservice.dto.truck.TruckSaveRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
@@ -167,7 +168,7 @@ public class TruckServiceImpl implements TruckService {
             return TruckActionResponse.builder()
                     .truckId(truckId)
                     .licensePlate(truck.getLicensePlate())
-                    .message("Error")
+                    .message(truck.getLicensePlate() + " plakalı tır mallarını zaten teslim etmiştir.")
                     .status(truck.getStatus())
                     .build();
         }
@@ -183,16 +184,29 @@ public class TruckServiceImpl implements TruckService {
             return TruckActionResponse.builder()
                     .truckId(truckId)
                     .licensePlate(savedTruck.getLicensePlate())
-                    .message("Yola çıkabilirsiniz.")
+                    .message("Yola çıkıldı.")
                     .status(savedTruck.getStatus())
                     .build();
         } else {
             return TruckActionResponse.builder()
                     .truckId(truckId)
                     .licensePlate(truck.getLicensePlate())
-                    .message("Error")
+                    .message(truck.getLicensePlate() +  " plakalı tır zaten yola çıkmıştır.")
                     .status(truck.getStatus())
                     .build();
         }
+    }
+
+    @Override
+    public TruckEscortResponse escortTruck(String truckId, String userId) {
+        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> new RuntimeException("No truck found with id " + truckId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("No user found with id: " + userId));
+        if(!truck.isEscorted()){
+            if(user.getRole().getName().equals("POLICE")){
+                truck.setEscorted(true);
+                truckRepository.save(truck);
+                return TruckEscortResponse.builder().licensePlate(truck.getLicensePlate()).message(truck.getLicensePlate() + " plakalı tıra polis yardımı geliyor").status("BAŞARILI").build();
+            } else return TruckEscortResponse.builder().licensePlate(truck.getLicensePlate()).message("Tıra eşlik etmek isteyen kullanıcı 'POLİS' rol tipinde").status("HATA").build();
+        } else return TruckEscortResponse.builder().licensePlate(truck.getLicensePlate()).message("Tıra zaten eşlik ediliyor").status("HATA").build();
     }
 }

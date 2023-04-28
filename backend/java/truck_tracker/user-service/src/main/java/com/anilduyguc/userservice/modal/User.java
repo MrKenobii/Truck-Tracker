@@ -31,6 +31,7 @@ public class User implements UserDetails {
     private String latitude;
     private String longitude;
     private String accountActivationToken;
+    private String smsActivationToken;
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,

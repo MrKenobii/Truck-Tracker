@@ -225,14 +225,16 @@ const NotificationsPage = () => {
               >
                 Gönder
               </Button>
-              <Button
-                color="error"
-                onClick={() => handleNotification("Acil Yardım İstiyor !!!")}
-                variant="contained"
-                sx={{ mt: 3, mb: 2, mx: 3 }}
-              >
-                Acil Yardım
-              </Button>
+              {(user.role.name !== "ADMIN" && user.role.name !== "POLICE" && user.role.name !== "POLICE_STATION" && user.role.name !== "GOVERNMENT") && (
+                <Button
+                  color="error"
+                  onClick={() => handleNotification("Acil Yardım İstiyor !!!")}
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2, mx: 3 }}
+                >
+                  Acil Yardım
+                </Button>
+              )}
             </Box>
           </Grid>
         </Grid>
@@ -284,7 +286,7 @@ const NotificationsPage = () => {
                   <CardActions>
                     {notification.notif ? (
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         size="small"
                         onClick={() => handleRead(notification.notif.id)}
                       >
@@ -292,7 +294,7 @@ const NotificationsPage = () => {
                       </Button>
                     ) : (
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         size="small"
                         onClick={() => handleRead(notification.id)}
                       >

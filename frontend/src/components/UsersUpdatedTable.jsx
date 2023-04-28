@@ -23,6 +23,7 @@ import { BASE_URL } from "../constants/urls";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import DialogContentText from '@mui/material/DialogContentText';
 
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 Geocode.setApiKey(apiKey);
@@ -47,10 +48,36 @@ const fetchRoles = async () => {
   return res.data;
 };
 
+
+
 const UsersUpdatedTable = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  const [open, setOpen] = React.useState(false);
+  const [selectedValue, setSelectedValue] = React.useState(null);
+  const [selectedDeletedValue, setSelectedDeletedValue] = React.useState(null);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
+  const handleClickDeleteOpen = (row) => {
+    console.log(row.original);
+    setDeleteOpen(true);
+    setSelectedDeletedValue(row);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
+    setSelectedDeletedValue(null);
+  };
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (value) => {
+    setOpen(false);
+    setSelectedValue(value);
+  };
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
 
@@ -61,6 +88,7 @@ const UsersUpdatedTable = () => {
 
   const handleSaveRowEdits = async ({ exitEditingMode, row, values }) => {
     if (!Object.keys(validationErrors).length) {
+      console.log(values);
       tableData[row.index] = values;
       //send/receive api updates here, then refetch or update local table data for re-render
       setTableData([...tableData]);
@@ -195,15 +223,9 @@ const UsersUpdatedTable = () => {
     }
     return d;
   };
-
+  
   const handleDeleteRow = useCallback(
     (row) => {
-      //   if (
-      //     !confirm(`Are you sure you want to delete ${row.getValue('firstName')}`)
-      //   ) {
-      //     return;
-      //   }
-      //send api delete request here, then refetch or update local table data for re-render
       const deleteUser = async (user) => {
         let res = await axios.delete(`${BASE_URL}/user/${user.id}`, {
           headers: {
@@ -227,7 +249,7 @@ const UsersUpdatedTable = () => {
       };
       deleteUser(row.original).then((deleteRes) => {
         console.log(deleteRes);
-        toast.success(
+        toast.info(
           `${row.original.name} ${row.original.lastName} adlı kullanıcı başarıyla silindi`,
           {
             position: toast.POSITION.TOP_RIGHT,
@@ -242,6 +264,8 @@ const UsersUpdatedTable = () => {
         );
         tableData.splice(row.index, 1);
         setTableData([...tableData]);
+        setDeleteOpen(false);
+        setSelectedDeletedValue(null);
       });
     },
     [tableData]
@@ -453,13 +477,14 @@ const UsersUpdatedTable = () => {
         onEditingRowCancel={handleCancelRowEdits}
         renderRowActions={({ row, table }) => (
           <Box sx={{ display: "flex", gap: "1rem" }}>
-            <Tooltip arrow placement="left" title="Edit">
+            {/* <Tooltip arrow placement="left" title="Edit">
               <IconButton onClick={() => table.setEditingRow(row)}>
                 <Edit />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
             <Tooltip arrow placement="right" title="Delete">
-              <IconButton color="error" onClick={() => handleDeleteRow(row)}>
+              {/* <IconButton color="error" onClick={() => handleDeleteRow(row)}> */}
+              <IconButton color="error" onClick={() => handleClickDeleteOpen(row)}>
                 <Delete />
               </IconButton>
             </Tooltip>
@@ -481,6 +506,24 @@ const UsersUpdatedTable = () => {
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateNewRow}
       />
+      <Dialog
+        open={deleteOpen}
+        onClose={handleDeleteClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {selectedDeletedValue && selectedDeletedValue.original && (
+            <p>{selectedDeletedValue.original.name + " " + selectedDeletedValue.original.lastName + " adlı kullanıcıyı silmek istiyor musunuz?"}</p>
+          )}
+        </DialogTitle>
+        <DialogActions>
+          <Button variant="contained" color="error" onClick={() => handleDeleteRow(selectedDeletedValue)}>Sil</Button>
+          <Button variant="outlined" color="info" onClick={handleDeleteClose} autoFocus>
+            İptal
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
@@ -509,8 +552,7 @@ const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
   const handleSubmit = () => {
     //put your validation logic here
     const saveUser = async (user) => {
-      let res = await axios.post(`${BASE_URL}/auth/register`, user, {});
-      return res.data;
+      return await axios.post(`${BASE_URL}/auth/register`, user, {});
     };
     const payload = {
       email: values.email,
@@ -522,8 +564,32 @@ const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
       role
     };
     console.log(payload);
-    saveUser(payload).then((data) => {
-      console.log(data);
+    saveUser(payload).then((res) => {
+      console.log(res.data);
+      if(res.status === 200){
+        toast.success(`${payload.firstName + " " + payload.lastName} adlı kullanıcının hesabı başarıyla oluşturuldu.`, {
+          position: toast.POSITION.BOTTOM_CENTER,
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else {
+        toast.error(`Bir şeyler terst gitti`, {
+          position: toast.POSITION.BOTTOM_CENTER,
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+
     });
     onSubmit(values);
     onClose();
@@ -587,6 +653,8 @@ const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
               <>
                 {column.accessorKey !== "id" &&
                   column.accessorKey !== "status" &&
+                  column.accessorKey !== "latitude" &&
+                  column.accessorKey !== "longitude" &&
                   column.accessorKey !== "accountStatus" &&
                   column.accessorKey !== "city" && 
                   column.accessorKey !== "role" && (

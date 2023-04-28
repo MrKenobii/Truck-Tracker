@@ -146,7 +146,7 @@ const Navbar = () => {
   useEffect(() => {
     socket?.on("getNotification", (data) => {
       console.log(data);
-      toast.success(
+      toast.info(
         `${
           data.senderName.name +
           " " +

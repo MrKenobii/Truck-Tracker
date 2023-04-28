@@ -11,26 +11,34 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
 const ProfilePage = () => {
-    const navigate = useNavigate();
-    const { userId } = useParams();
+  const navigate = useNavigate();
+  const { userId } = useParams();
   const { user } = useSelector((state) => state.user);
   useEffect(() => {
-      console.log(user.id);
-      console.log(userId);
-      if(user.id !== userId){
-          navigate("/not-found")
-      }
+    console.log(user.id);
+    console.log(userId);
+    if (user.id !== userId) {
+      navigate("/not-found");
+    }
   }, []);
+  const getRole = (role) => {
+    if (role === "POLICE") return "POLİS";
+    else if (role === "POLICE_STATION") return "KARAKOL";
+    else if (role === "GOVERNMENT") return "HÜKÜMET";
+    else if (role === "TRUCK_DRIVER") return "TIR ŞÖFORÜ";
+    else if (role === "ADMIN") return "YÖNETİCİ";
+    else if (role === "NORMAL") return "NORMAL KULLANICI";
+    else return "";
+  };
   return (
     <Grid container sx={{ backgroundColor: "#9b5252", height: "100vh" }}>
       {user && (
         <Grid item sm={12}>
-          <Box display="flex" justifyContent="center" alignItems="center" >
+          <Box display="flex" justifyContent="center" alignItems="center">
             <Card
               sx={{
                 minWidth: 275,
                 mt: 2,
-                
               }}
             >
               <CardContent>
@@ -39,7 +47,7 @@ const ProfilePage = () => {
                   color="text.primary"
                   gutterBottom
                 >
-                  {user.role.name}
+                  {getRole(user.role.name)}
                   <span
                     style={{
                       m: 5,
@@ -55,10 +63,20 @@ const ProfilePage = () => {
                 <Typography variant="h5" component="div">
                   {user.name + " " + user.lastName}
                 </Typography>
-                <Typography component="div" variant="p" sx={{ mb: 1.5 }} color="text.primary">
+                <Typography
+                  component="div"
+                  variant="p"
+                  sx={{ mb: 1.5 }}
+                  color="text.primary"
+                >
                   {user.city.name}
                 </Typography>
-                <Typography component="div" variant="p" sx={{ mb: 1.5 }} color="text.primary">
+                <Typography
+                  component="div"
+                  variant="p"
+                  sx={{ mb: 1.5 }}
+                  color="text.primary"
+                >
                   {user.email}
                 </Typography>
                 <Typography variant="body2">{user.phoneNumber}</Typography>

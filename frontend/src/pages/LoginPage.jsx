@@ -54,36 +54,64 @@ const LoginPage = () => {
     if(token){
       navigate("/");
     }
-  }, [])
+  }, []);
+  const isValidEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
-    axios
-      .post(`${BASE_URL}/auth/authenticate`, {
-        email: data.get("email"),
-        password: data.get("password"),
-      })
-      .then(function (response) {
-        console.log(response);
-        if(response.status === 200 && response.data.token){
-          //dispatch(setUser(response.data));
-          fetchUser(response.data.token).then((userResponse) => {
-            if(userResponse.status === 200){
-              console.log(userResponse.data);
-              dispatch(setUser({
-                token: response.data,
-                user: userResponse.data
-              }));
-              navigate("/");
+    
+    if(isValidEmail(data.get("email"))){
+      if(data.get("email") && data.get("password")){
+        axios
+          .post(`${BASE_URL}/auth/authenticate`, {
+            email: data.get("email"),
+            password: data.get("password"),
+          })
+          .then(function (response) {
+            console.log(response);
+            if(response.status === 200 && response.data.token){
+              //dispatch(setUser(response.data));
+              fetchUser(response.data.token).then((userResponse) => {
+                if(userResponse.status === 200){
+                  console.log(userResponse.data);
+                  dispatch(setUser({
+                    token: response.data,
+                    user: userResponse.data
+                  }));
+                  navigate("/");
+                }
+              }).catch(err => {
+                console.log(err);
+              });
+              toast.success("Giriş Başarılı !", {
+                  position: toast.POSITION.BOTTOM_CENTER,
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "dark",
+              });
+            } else {
+              toast.error(`${response.data.message}`, {
+                position: toast.POSITION.BOTTOM_CENTER,
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+              });
             }
-          }).catch(err => {
-            console.log(err);
-          });
-          toast.success("Giriş Başarılı !", {
+            
+          })
+          .catch(function (error) {
+            console.log(error);
+            toast.error("Giriş hatalı. Tekrar deneyiniz !", {
               position: toast.POSITION.BOTTOM_CENTER,
               autoClose: 3000,
               hideProgressBar: false,
@@ -92,24 +120,10 @@ const LoginPage = () => {
               draggable: true,
               progress: undefined,
               theme: "dark",
+            });
           });
-        } else {
-          toast.error(`${response.data.message}`, {
-            position: toast.POSITION.BOTTOM_CENTER,
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-        }
-        
-      })
-      .catch(function (error) {
-        console.log(error);
-        toast.error("Giriş hatalı. Tekrar deneyiniz !", {
+      } else {
+        toast.error("Lütfen istenilen yerleri eksiksiz giriniz!", {
           position: toast.POSITION.BOTTOM_CENTER,
           autoClose: 3000,
           hideProgressBar: false,
@@ -119,7 +133,19 @@ const LoginPage = () => {
           progress: undefined,
           theme: "dark",
         });
+      }
+    } else {
+      toast.error("Mail formatı doğru değil!", {
+        position: toast.POSITION.BOTTOM_CENTER,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
       });
+    }
   };
   return (
     <ThemeProvider theme={theme}>

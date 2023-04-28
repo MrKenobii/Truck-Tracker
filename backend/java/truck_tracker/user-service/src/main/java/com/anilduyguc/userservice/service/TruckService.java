@@ -2,6 +2,7 @@ package com.anilduyguc.userservice.service;
 
 import com.anilduyguc.userservice.dto.Location;
 import com.anilduyguc.userservice.dto.truck.TruckActionResponse;
+import com.anilduyguc.userservice.dto.truck.TruckEscortResponse;
 import com.anilduyguc.userservice.dto.truck.TruckSaveRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Truck;
@@ -23,4 +24,6 @@ public interface TruckService {
     TruckActionResponse deliverGoods(String truckId);
 
     TruckActionResponse takeOff(String truckId);
+
+    TruckEscortResponse escortTruck(String truckId, String userId);
 }

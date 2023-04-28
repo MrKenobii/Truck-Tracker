@@ -9,6 +9,7 @@ import com.anilduyguc.userservice.repository.CityRepository;
 import com.anilduyguc.userservice.repository.RoleRepository;
 import com.anilduyguc.userservice.repository.UserRepository;
 import com.anilduyguc.userservice.service.EmailService;
+import com.anilduyguc.userservice.service.TwilioService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -30,6 +32,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final TwilioService twilioService;
 
     public AuthenticationResponse register(RegisterRequest registerRequest) {
         Optional<User> userByEmail = userRepository.findUserByEmail(registerRequest.getEmail());
@@ -38,6 +41,8 @@ public class AuthService {
         } else {
             City city = cityRepository.findCitiesByName(registerRequest.getCity()).orElseThrow(() -> new RuntimeException("No city found with name " + registerRequest.getCity()));
             Role role = roleRepository.findByName(registerRequest.getRole()).orElseThrow(() -> new RuntimeException("No role found with name " + registerRequest.getRole()));
+            String smsActivationToken = this.generateOTP();
+            String emailActivationToken = this.generateOTP();
             var user = User.builder()
                     .id(UUID.randomUUID().toString())
                     .isAccountActive(false)
@@ -48,10 +53,12 @@ public class AuthService {
                     .name(registerRequest.getFirstName())
                     .lastName(registerRequest.getLastName())
                     .email(registerRequest.getEmail())
-                    .accountActivationToken(String.valueOf(new Random().nextInt(900000) + 100000))
+                    .accountActivationToken(emailActivationToken)
+                    .smsActivationToken(smsActivationToken)
                     .password(passwordEncoder.encode(registerRequest.getPassword()))
                     .role(role)
                     .build();
+            twilioService.sendRegistrationInfo(user);
             try {
                 emailService.sendHtmlEmailActivateAccount(user);
             } catch (MessagingException e) {
@@ -65,14 +72,18 @@ public class AuthService {
                     .build();
         }
     }
+    private String generateOTP(){
+        return new DecimalFormat("000000").format(new Random().nextInt(999999));
+    }
     public ActivateAccountResponse activateAccount(String userId, ActivateAccountRequest request){
         User userById = this.getUserById(userId);
         if(!userById.isAccountActive()){
-            if(request.getActivationToken().equals(userById.getAccountActivationToken())){
+            if((request.getActivationToken().equals(userById.getAccountActivationToken()) && request.getActivationSmsToken().equals(userById.getSmsActivationToken()))){
                 var jwt = jwtService.generateToken(userById);
                 userById.setToken(jwt);
                 userById.setAccountActive(true);
                 userById.setAccountActivationToken(null);
+                userById.setSmsActivationToken(null);
                 System.out.println(request);
                 if(request.isAdmin()) userById.setStatus("OFFLINE");
                 else userById.setStatus("ONLINE");
@@ -90,7 +101,7 @@ public class AuthService {
             } else {
                 return ActivateAccountResponse.builder()
                         .token(null)
-                        .message("Geçersiz kod girildi.")
+                        .message("Aktivasyon kodları hatalı.")
                         .user(null)
                         .build();
             }

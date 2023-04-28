@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ActivateAccountRequest {
     private String activationToken;
+    private String activationSmsToken;
     private boolean isAdmin;
 }

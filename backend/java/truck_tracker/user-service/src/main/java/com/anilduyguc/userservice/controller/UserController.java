@@ -1,19 +1,26 @@
 package com.anilduyguc.userservice.controller;
 
+import com.anilduyguc.userservice.config.TwilioConfig;
+import com.anilduyguc.userservice.dto.TwilioOTPResponse;
+import com.anilduyguc.userservice.dto.TwiloOTPTest;
 import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
 import com.anilduyguc.userservice.dto.user.UserLocationRequest;
 import com.anilduyguc.userservice.modal.City;
 import com.anilduyguc.userservice.modal.Role;
 import com.anilduyguc.userservice.modal.User;
 import com.anilduyguc.userservice.service.UserService;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 @RequestMapping("/api/v1/user")
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
@@ -21,6 +28,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final TwilioConfig twilioConfig;
 
     @GetMapping
     public ResponseEntity<?> getUsers(@RequestParam(required = false) String email, @RequestParam(required = false) String ssNo){
@@ -78,5 +86,6 @@ public class UserController {
     public ResponseEntity<List<User>> getFreeDrivers() {
         return new ResponseEntity<>(userService.getFreeDrivers(), HttpStatus.OK);
     }
+
 
 }

@@ -31,8 +31,8 @@ const ActivateAccount = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log(data.get("token"));
-    if (data.get("token").trim() === "" ) {
+    
+    if (data.get("token").trim() === "" || data.get("smsToken").trim() === "") {
       toast.error("Lütfen eksiksiz tamamlayınız !", {
         position: toast.POSITION.BOTTOM_CENTER,
         autoClose: 3000,
@@ -44,10 +44,11 @@ const ActivateAccount = () => {
         theme: "dark",
       });
     } else {
-       if(data.get("token") === userFromApi.accountActivationToken){
+       if(data.get("token") === userFromApi.accountActivationToken && data.get("smsToken") === userFromApi.smsActivationToken){
            axios
              .put(`${BASE_URL}/auth/activate-account/${userId}`, {
                activationToken: data.get("token"),
+               activationSmsToken: data.get("smsToken"),
                admin: false
              })
              .then((res) => {
@@ -85,7 +86,7 @@ const ActivateAccount = () => {
              });
 
        } else {
-        toast.error("Yanlış kod girdiniz", {
+        toast.error("Aktivasyon kodları yanlış girildi!", {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 3000,
             hideProgressBar: false,
@@ -104,7 +105,6 @@ const ActivateAccount = () => {
       navigate("/");
     } else {
       axios.get(`${BASE_URL}/auth/user/${userId}`).then((response) => {
-        console.log(response.data);
         if (response.status === 200) {
           if (
             !response.data.accountActive &&
@@ -114,8 +114,10 @@ const ActivateAccount = () => {
           } else {
             navigate("/login");
           }
+        } else if(response.status === 403) {
+          navigate("/not-found");
         }
-      });
+      }).catch(err => navigate("/not-found"));
     }
   }, []);
   return (
@@ -151,9 +153,20 @@ const ActivateAccount = () => {
               fullWidth
               type="text"
               id="token"
-              label="6-Haneli Kodunuz"
+              label="E-mail hesabınıza gelen 6-Haneli Kodunuz"
               name="token"
               autoComplete="token"
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              type="text"
+              id="smsToken"
+              label="Telefon numaranıza gelen 6-Haneli Kodunuz"
+              name="smsToken"
+              autoComplete="smsToken"
               autoFocus
             />
             <Button

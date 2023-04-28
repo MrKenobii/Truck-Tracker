@@ -16,6 +16,7 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { Button } from "@mui/material";
+import { toast } from "react-toastify";
 
 const CreateTruck = ({ marker, urgentCities, cities, drivers }) => {
   const [city, setCity] = useState("");
@@ -46,7 +47,17 @@ const CreateTruck = ({ marker, urgentCities, cities, drivers }) => {
       })
       .then((res) => {
         console.log(res.data);
-      });
+        toast.error(`${payload.licensePlate} plakalı tır başarıyla oluşturuldu.`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+      }).catch(err => console.log(err));
   };
   const handleChangeCity = (event) => {
     setCity(event.target.value);

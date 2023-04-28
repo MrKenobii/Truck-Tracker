@@ -87,7 +87,6 @@ public class CityServiceImpl implements CityService {
             int randomNumberForTent;
             int randomNumberForClothing;
             if (city.getUrgency() > 3) {
-
                 randomNumberForWater = (int) Math.floor(Math.random() * (250 - 150 + 1) + 150);
                 randomNumberForFood = (int) Math.floor(Math.random() * (250 - 150 + 1) + 150);
                 randomNumberForTent = (int) Math.floor(Math.random() * (150 - 100 + 1) + 100);

@@ -79,6 +79,7 @@ public class UserServiceImpl implements UserService {
         userToUpdate.setLatitude(user.getLatitude());
         userToUpdate.setLongitude(user.getLongitude());
         userToUpdate.setAccountActivationToken(user.getAccountActivationToken());
+        userToUpdate.setSmsActivationToken(user.getSmsActivationToken());
 //        userToUpdate.setCity(user.getCity());
 //        userToUpdate.setNotification(user.getNotification());
 //        userToUpdate.setRole(user.getRole());
@@ -123,6 +124,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User with id: " + userId + " was not found"));
         user.setLongitude(userLocationRequest.getLongitude());
         user.setLatitude(userLocationRequest.getLatitude());
+        if(user.getRole().getName().equals("TRUCK_DRIVER")){
+            Truck truck = truckRepository.findTruckByUser(user).orElseThrow(() -> new RuntimeException("No truck found"));
+            if(truck.isTookOff()){
+                truck.setLatitude(userLocationRequest.getLatitude());
+                truck.setLongitude(userLocationRequest.getLongitude());
+                truckRepository.save(truck);
+            }
+        }
         return userRepository.save(user);
     }
 
