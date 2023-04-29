@@ -379,6 +379,20 @@ const UsersUpdatedTable = () => {
         }),
       },
       {
+        accessorKey: "accountActivationToken",
+        header: "E-Mail Aktivasyon Kodu",
+        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+          ...getCommonEditTextFieldProps(cell),
+        }),
+      },
+      {
+        accessorKey: "smsActivationToken",
+        header: "Sms Aktivasyon Kodu",
+        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+          ...getCommonEditTextFieldProps(cell),
+        }),
+      },
+      {
         accessorKey: "latitude",
         header: "Enlem",
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
@@ -656,6 +670,8 @@ const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
                   column.accessorKey !== "latitude" &&
                   column.accessorKey !== "longitude" &&
                   column.accessorKey !== "accountStatus" &&
+                  column.accessorKey !== "smsActivationToken" &&
+                  column.accessorKey !== "accountActivationToken" &&
                   column.accessorKey !== "city" && 
                   column.accessorKey !== "role" && (
                     <TextField
