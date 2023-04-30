@@ -456,8 +456,6 @@ const Map = () => {
                         console.log(tRes.data);
                         const newArr = data.filter((t) => t.id !== truck.id);
                         setTrucks(setAddress(newArr));
-                      } else {
-                        console.log("no");
                       }
                     })
                     .catch((err) => console.log(err));

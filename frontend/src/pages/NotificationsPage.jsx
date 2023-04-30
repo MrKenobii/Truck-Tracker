@@ -14,6 +14,19 @@ import { Container, Grid, TextField } from "@mui/material";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../redux/features/userSlice";
+import Modal from "@mui/material/Modal";
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
 
 const NotificationsPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -22,14 +35,31 @@ const NotificationsPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const [open, setOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
+  const [replyMessage, setReplyMessage] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [roles, setRoles] = useState([]);
   const [roleName, setRoleName] = useState([]);
+  const [replySender, setReplySender] = useState(null);
+  const [replyNotification, setReplyNotification] = useState(null);
   const socket = useContext(SocketContext);
   const location = useLocation();
 
+  const handleOpen = (notification, sender) => {
+    console.log(notification);
+    setReplySender(sender);
+    setReplyNotification(notification);
+    console.log(sender);
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+    setReplySender(null);
+    setReplyNotification(null);
+  };
   const formatDate = (inputDate) => {
     console.log(inputDate);
     let date, month, year, hour, minute, second;
@@ -84,6 +114,44 @@ const NotificationsPage = () => {
       })
     );
   };
+  const handleReply = (notificationId, message, sender) => {
+    console.log(sender);
+    console.log(message);
+    if (message.trim() === "") {
+      toast.error("Mesaj içeriği boş olamaz !", {
+        position: toast.POSITION.BOTTOM_CENTER,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    } else {
+      socket.emit("replyMessage", {
+        senderName: user,
+        reciever: sender,
+        content: message,
+        emergencyLevel: 3
+      });
+      toast.success("Mesajınız başarıyla gönderilmiştir !", {
+        position: toast.POSITION.BOTTOM_CENTER,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      handleRead(notificationId);
+    }
+    setReplyMessage("");
+    setReplyNotification(null);
+    setReplySender(null);
+    setOpen(false);
+  };
   const handleChangeRole = (event) => {
     const {
       target: { value },
@@ -131,7 +199,6 @@ const NotificationsPage = () => {
           emergencyLevel: 5,
         });
       } else {
-        console.log("BAŞKA");
         const newUsers = users.filter(
           (u) => u.role.name === "ADMIN" || u.role.name === "POLICE_STATION"
         );
@@ -144,6 +211,16 @@ const NotificationsPage = () => {
           emergencyLevel: 5,
         });
       }
+      toast.success("Mesajınız başarıyla gönderilmiştir !", {
+        position: toast.POSITION.BOTTOM_CENTER,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
     }
   };
 
@@ -173,7 +250,7 @@ const NotificationsPage = () => {
       fetchNotifications(localStorage.getItem("token"))
         .then((res) => {
           console.log(res.data);
-          
+
           let sortedArr = res.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
@@ -225,16 +302,21 @@ const NotificationsPage = () => {
               >
                 Gönder
               </Button>
-              {(user.role.name !== "ADMIN" && user.role.name !== "POLICE" && user.role.name !== "POLICE_STATION" && user.role.name !== "GOVERNMENT") && (
-                <Button
-                  color="error"
-                  onClick={() => handleNotification("Acil Yardım İstiyor !!!")}
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2, mx: 3 }}
-                >
-                  Acil Yardım
-                </Button>
-              )}
+              {user.role.name !== "ADMIN" &&
+                user.role.name !== "POLICE" &&
+                user.role.name !== "POLICE_STATION" &&
+                user.role.name !== "GOVERNMENT" && (
+                  <Button
+                    color="error"
+                    onClick={() =>
+                      handleNotification("Acil Yardım İstiyor !!!")
+                    }
+                    variant="contained"
+                    sx={{ mt: 3, mb: 2, mx: 3 }}
+                  >
+                    Acil Yardım
+                  </Button>
+                )}
             </Box>
           </Grid>
         </Grid>
@@ -285,21 +367,147 @@ const NotificationsPage = () => {
                   </CardContent>
                   <CardActions>
                     {notification.notif ? (
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => handleRead(notification.notif.id)}
-                      >
-                        Okundu olarak işaretle
-                      </Button>
+                      <>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleRead(notification.notif.id)}
+                        >
+                          Okundu olarak işaretle
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          onClick={() =>
+                            handleOpen(notification, notification.senderName)
+                          }
+                        >
+                          Yanıtla
+                        </Button>
+                        <Modal
+                          open={open}
+                          onClose={handleClose}
+                          aria-labelledby="modal-modal-title"
+                          aria-describedby="modal-modal-description"
+                        >
+                          <Box sx={style}>
+                            <Typography
+                              id="modal-modal-title"
+                              variant="h6"
+                              component="h2"
+                            >
+                              Şu kullanıcıya Yanıtlıyorsunuz{" "}
+                              {replySender &&
+                                replySender.name + " " + replySender.lastName}
+                            </Typography>
+                            <Typography
+                              id="modal-modal-description"
+                              sx={{ mt: 2 }}
+                            >
+                              Mesaj İçeriği:{" "}
+                              {replyNotification && replyNotification.content}
+                            </Typography>
+                            <Grid item xs={12} sm={12} md={12}>
+                              <Box component="form" noValidate sx={{ mt: 1 }}>
+                                <TextField
+                                  onChange={(e) => setReplyMessage(e.target.value)}
+                                  value={replyMessage}
+                                  margin="normal"
+                                  fullWidth
+                                  id="message"
+                                  label="Mesaj"
+                                  name="message"
+                                  autoComplete="message"
+                                  autoFocus
+                                />
+                              </Box>
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={12}>
+                              <Box sx={{ minWidth: 275 }}>
+                                <Button
+                                  onClick={() => handleReply(notification.id, replyMessage, replySender)}
+                                  variant="contained"
+                                  sx={{ mt: 3, mb: 2 }}
+                                >
+                                  Gönder
+                                </Button>
+                              </Box>
+                            </Grid>
+                          </Box>
+                        </Modal>
+                      </>
                     ) : (
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => handleRead(notification.id)}
-                      >
-                        Okundu olarak işaretle
-                      </Button>
+                      <>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleRead(notification.id)}
+                        >
+                          Okundu olarak işaretle
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          onClick={() =>
+                            handleOpen(notification, notification.senderName)
+                          }
+                        >
+                          Yanıtla
+                        </Button>
+                        <Modal
+                          open={open}
+                          onClose={handleClose}
+                          aria-labelledby="modal-modal-title"
+                          aria-describedby="modal-modal-description"
+                        >
+                          <Box sx={style}>
+                            <Typography
+                              id="modal-modal-title"
+                              variant="h6"
+                              component="h2"
+                            >
+                              Şu kullanıcıya Yanıtlıyorsunuz{" "}
+                              {replySender &&
+                                replySender.name + " " + replySender.lastName}
+                            </Typography>
+                            <Typography
+                              id="modal-modal-description"
+                              sx={{ mt: 2 }}
+                            >
+                              Mesaj İçeriği:{" "}
+                              {replyNotification && replyNotification.content}
+                            </Typography>
+                            <Grid item xs={12} sm={12} md={12}>
+                              <Box component="form" noValidate sx={{ mt: 1 }}>
+                                <TextField
+                                  onChange={(e) => setReplyMessage(e.target.value)}
+                                  value={replyMessage}
+                                  margin="normal"
+                                  fullWidth
+                                  id="message"
+                                  label="Mesaj"
+                                  name="message"
+                                  autoComplete="message"
+                                  autoFocus
+                                />
+                              </Box>
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={12}>
+                              <Box sx={{ minWidth: 275 }}>
+                                <Button
+                                  onClick={() => handleReply(notification.id, replyMessage, replySender)}
+                                  variant="contained"
+                                  sx={{ mt: 3, mb: 2 }}
+                                >
+                                  Gönder
+                                </Button>
+                              </Box>
+                            </Grid>
+                          </Box>
+                        </Modal>
+                      </>
                     )}
                   </CardActions>
                 </>

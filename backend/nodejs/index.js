@@ -182,6 +182,54 @@ io.on("connection", (socket) => {
       });
     }
   );
+  socket.on("replyMessage", ({ senderName, reciever, content, emergencyLevel }) => {
+    console.log(
+      "----------------------CALL COPS---------------------- : " + content
+    );
+    // console.log(senderName);
+    // console.log(reciever);
+    const receiverSocket = getUser(reciever.username);
+    if(receiverSocket){
+      console.log("Console: " + receiverSocket.socketId);
+      const payload = {
+        senderName,
+        notif: {
+          id: uuidv4(),
+          content,
+          emergencyLevel,
+        },
+      };
+
+      axios
+        .post(
+          `http://localhost:8080/api/v1/notification/${reciever.id}/save`,
+          {
+            id: payload.notif.id,
+            content: payload.notif.content,
+            emergencyLevel: payload.notif.emergencyLevel,
+            senderId: payload.senderName.id,
+          },
+          {
+            headers: { Authorization: `Bearer ${reciever.token}` },
+          }
+        )
+        .then((data) => {
+          console.log("SUBMIT")
+          console.log(data.data);
+          
+          io.to(receiverSocket.socketId).emit("getNotification", {
+            senderName: payload.senderName,
+            notif: {
+              id: payload.notif.id,
+              content: payload.notif.content,
+              emergencyLevel: payload.notif.emergencyLevel,
+              createdAt: data.data.createdAt,
+            },
+          });
+        })
+        .catch((err) => console.log(err));
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("Disconnected");
