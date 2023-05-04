@@ -6,6 +6,7 @@ import {
   MarkerF,
   useLoadScript,
   InfoWindowF,
+  DirectionsRenderer,
 } from "@react-google-maps/api";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -51,6 +52,7 @@ const Map = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [show, setShow] = useState(false);
   const [markers, setMarkers] = useState([]);
+  const [directions, setDirections] = useState(null);
 
   const socket = useContext(SocketContext);
 
@@ -440,6 +442,31 @@ const Map = () => {
                   const truck = data.find((t) => {
                     return t.user.id === user.id;
                   });
+                  console.log({
+                    truckLat: truck.latitude,
+                    truckLng: truck.longitude,
+                    truckDestLat: truck.destinationCity.latitude,
+                    truckDestLng: truck.destinationCity.longitude,
+                  });
+                  const directionsService = new window.google.maps.DirectionsService();
+                  const directionsRenderer = new window.google.maps.DirectionsRenderer();
+                  var current = new window.google.maps.LatLng(truck.latitude, truck.longitude);
+                  if(truck.arrived){
+                    var dest = new window.google.maps.LatLng(truck.fromCity.latitude, truck.fromCity.longitude);
+                  } else {
+                    var dest = new window.google.maps.LatLng(truck.destinationCity.latitude, truck.destinationCity.longitude);
+                  }
+                  var request = {
+                    origin: current,
+                    destination: dest,
+                    travelMode: 'DRIVING'
+                  };
+                  directionsService.route(request, function (response, status) {
+                    if (status == 'OK') {
+                      setDirections(response);
+                      directionsRenderer.setDirections(response);
+                    }
+                  });
                   console.log(truck);
                   setUsersTruck(truck);
                   console.log(truck);
@@ -549,6 +576,7 @@ const Map = () => {
       zoom={10}
       onClick={handleMapLeftClick}
     >
+      
       {markers.map((marker, index) => (
         <MarkerF
           key={index}
@@ -604,7 +632,7 @@ const Map = () => {
             }}
           >
             <div style={{ padding: 0, color: "black" }}>
-              <h2>Burdasınısız</h2>
+              <h2>Burdasınız</h2>
               <h3>
                 {updatedUser.states}, {updatedUser.district}
               </h3>
@@ -612,6 +640,7 @@ const Map = () => {
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
               {user.role.name === "TRUCK_DRIVER" && (
                 <>
+                <DirectionsRenderer directions={directions} />
                   {!isTookOff ? (
                     <Button
                       type="button"
