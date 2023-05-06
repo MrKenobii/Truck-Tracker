@@ -26,4 +26,8 @@ public interface UserService {
     User setCurrentLocation(String userId, UserLocationRequest userLocationRequest);
 
     List<User> getFreeDrivers();
+
+    List<User> createStations();
+
+    List<User> updateLocations();
 }

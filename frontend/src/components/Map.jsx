@@ -69,6 +69,15 @@ const Map = () => {
       ]);
     }
   };
+  const gatherUnits = (obj) => {
+    const filteredUsers = users.filter(u => u.role.name === "POLICE");
+    socket.emit("gatherUnits", {
+      senderName: user,
+      recievers: filteredUsers.length > 0 ? filteredUsers : users,
+      content: `${user.name + " " + user.lastName} tarafından acil karakola çağrılıyorsunuz.`,
+      emergencyLevel: 5,
+    });
+  }
   const canDeliver = () => {
     if (usersTruck) {
       console.log(usersTruck);
@@ -110,8 +119,8 @@ const Map = () => {
     }
   };
   const removeMarker = (marker) => {
-    setMarkLongitude(null);
-    setMarkLatitude(null);
+    // setMarkLongitude(null);
+    // setMarkLatitude(null);
     const newMarkers = markers.filter(
       (m) => m.lat !== marker.lat && m.lng !== marker.lng
     );
@@ -638,6 +647,16 @@ const Map = () => {
               </h3>
               <h4>{user.name + " " + user.lastName}</h4>
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
+              {user.role.name === "POLICE_STATION" && (
+                <Button
+                type="button"
+                fullWidth
+                variant="contained"
+                onClick={() => gatherUnits(user)}
+              >
+                Birimleri Topla
+              </Button>
+              )}
               {user.role.name === "TRUCK_DRIVER" && (
                 <>
                 <DirectionsRenderer directions={directions} />
@@ -726,6 +745,10 @@ const Map = () => {
                   scaledSize: new window.google.maps.Size(40, 40),
                 }}
                 onClick={(props, marker) => {
+                  console.log(props.latLng.lat());
+                  console.log(props.latLng.lng());
+                  setMarkLatitude(props.latLng.lat());
+                  setMarkLongitude(props.latLng.lng());
                   setSelectedElement(truck);
                   setActiveMarker(marker);
                 }}
@@ -884,6 +907,8 @@ const Map = () => {
               scaledSize: new window.google.maps.Size(40, 40),
             }}
             onClick={(props, marker) => {
+              setMarkLatitude(props.latLng.lat());
+              setMarkLongitude(props.latLng.lng());
               setSelectedElement(city);
               setActiveMarker(marker);
             }}
@@ -921,7 +946,7 @@ const Map = () => {
             ) : null}
           </MarkerF>
         ))}
-      { user.role.name === "ADMIN" && users &&
+      {user.role.name === "ADMIN" && users &&
         users.filter(u => (u.role.name !== "NORMAL" && u.role.name !== "ADMIN")).map((user, index) => (
           <MarkerF
             key={index}
@@ -934,6 +959,8 @@ const Map = () => {
               scaledSize: new window.google.maps.Size(40, 40),
             }}
             onClick={(props, marker) => {
+              setMarkLatitude(props.latLng.lat());
+              setMarkLongitude(props.latLng.lng());
               setSelectedElement(user);
               setActiveMarker(marker);
             }}

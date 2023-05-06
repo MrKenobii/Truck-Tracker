@@ -44,6 +44,18 @@ public class UserController {
     public ResponseEntity<User> getUserById(@PathVariable String userId){
         return new ResponseEntity<>(userService.getUserById(userId), HttpStatus.OK);
     }
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user){
+        return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
+    }
+    @PostMapping("/create-stations")
+    public ResponseEntity<List<User>> createStations(){
+        return new ResponseEntity<>(userService.createStations(), HttpStatus.CREATED);
+    }
+    @PutMapping("/update-stations")
+    public ResponseEntity<List<User>> updateStations(){
+        return new ResponseEntity<>(userService.updateLocations(), HttpStatus.CREATED);
+    }
     @GetMapping("/token")
     public ResponseEntity<User> getUserByToken(@RequestHeader HttpHeaders headers){
         if(headers.containsKey("authorization")){
@@ -52,10 +64,6 @@ public class UserController {
             return new ResponseEntity<>(userService.getUserByToken(token), HttpStatus.OK);
         }
         return new ResponseEntity<>(new User(), HttpStatus.NOT_FOUND);
-    }
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user){
-        return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
     }
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(@PathVariable String userId, @RequestBody User user){

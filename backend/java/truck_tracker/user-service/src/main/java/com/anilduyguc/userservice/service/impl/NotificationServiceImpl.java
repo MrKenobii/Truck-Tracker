@@ -114,7 +114,7 @@ public class NotificationServiceImpl implements NotificationService {
         System.out.println("BEFORE " +user.getNotifications().size());
         Notification notification= Notification.builder()
                 .content(request.getContent())
-                .id(request.getId())
+                .id(UUID.randomUUID().toString())
                 .emergencyLevel(request.getEmergencyLevel())
                 .senderName(sender)
                 .createdAt(LocalDateTime.now())

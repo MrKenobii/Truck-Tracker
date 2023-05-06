@@ -86,7 +86,6 @@ io.on("connection", (socket) => {
           const payload = {
             senderName,
             notif: {
-              id: uuidv4(),
               content,
               emergencyLevel,
             },
@@ -112,7 +111,7 @@ io.on("connection", (socket) => {
               io.to(receiver.socketId).emit("getNotification", {
                 senderName: payload.senderName,
                 notif: {
-                  id: payload.notif.id,
+                  id: data.data.id,
                   content: payload.notif.content,
                   emergencyLevel: payload.notif.emergencyLevel,
                   createdAt: data.data.createdAt,
@@ -138,13 +137,13 @@ io.on("connection", (socket) => {
           receiver &&
           receiver.socketId &&
           (reciverName.role.name === "ADMIN" ||
-            reciverName.role.name === "POLICE_STATION" ||
-            reciverName.role.name === "POLICE")
+            reciverName.role.name === "POLICE_STATION" || (reciverName.role.name === "POLICE" && senderName.role.name === "POLICE_STATION")
+          )
         ) {
+          console.log("REciveerrr " + reciverName.name + " " + reciverName.lastName);
           const payload = {
             senderName,
             notif: {
-              id: uuidv4(),
               content,
               emergencyLevel,
             },
@@ -154,7 +153,6 @@ io.on("connection", (socket) => {
             .post(
               `http://localhost:8080/api/v1/notification/${reciverName.id}/save`,
               {
-                id: payload.notif.id,
                 content: payload.notif.content,
                 emergencyLevel: payload.notif.emergencyLevel,
                 senderId: payload.senderName.id,
@@ -170,7 +168,62 @@ io.on("connection", (socket) => {
               io.to(receiver.socketId).emit("getNotification", {
                 senderName: payload.senderName,
                 notif: {
-                  id: payload.notif.id,
+                  id: data.data.id,
+                  content: payload.notif.content,
+                  emergencyLevel: payload.notif.emergencyLevel,
+                  createdAt: data.data.createdAt,
+                },
+              });
+            })
+            .catch((err) => console.log(err));
+        }
+      });
+    }
+  );
+  socket.on(
+    "gatherUnits",
+    ({ senderName, recievers, content, emergencyLevel }) => {
+      console.log(
+        "----------------------GATHER UNITS---------------------- : " + content
+      );
+      recievers.map((reciverName) => {
+        const receiver = getUser(reciverName.username);
+        if (
+          receiver &&
+          receiver.socketId &&
+          (reciverName.role.name === "ADMIN" ||
+            reciverName.role.name === "POLICE"
+          )
+        ) {
+          console.log("Reciveerrr " + reciverName.name + " " + reciverName.lastName);
+          const payload = {
+            senderName,
+            notif: {
+              content,
+              emergencyLevel,
+            },
+          };
+
+          axios
+            .post(
+              `http://localhost:8080/api/v1/notification/${reciverName.id}/save`,
+              {
+                content: payload.notif.content,
+                emergencyLevel: payload.notif.emergencyLevel,
+                senderId: payload.senderName.id,
+              },
+              {
+                headers: { Authorization: `Bearer ${reciverName.token}` },
+              }
+            )
+            .then((data) => {
+              console.log("SUBMIT")
+              console.log(data.data);
+              
+              io.to(receiver.socketId).emit("getNotification", {
+                senderName: payload.senderName,
+                notif: {
+                  id: data.data.id,
                   content: payload.notif.content,
                   emergencyLevel: payload.notif.emergencyLevel,
                   createdAt: data.data.createdAt,
@@ -194,7 +247,6 @@ io.on("connection", (socket) => {
       const payload = {
         senderName,
         notif: {
-          id: uuidv4(),
           content,
           emergencyLevel,
         },
@@ -204,7 +256,6 @@ io.on("connection", (socket) => {
         .post(
           `http://localhost:8080/api/v1/notification/${reciever.id}/save`,
           {
-            id: payload.notif.id,
             content: payload.notif.content,
             emergencyLevel: payload.notif.emergencyLevel,
             senderId: payload.senderName.id,
@@ -220,7 +271,7 @@ io.on("connection", (socket) => {
           io.to(receiverSocket.socketId).emit("getNotification", {
             senderName: payload.senderName,
             notif: {
-              id: payload.notif.id,
+              id: data.data.id,
               content: payload.notif.content,
               emergencyLevel: payload.notif.emergencyLevel,
               createdAt: data.data.createdAt,

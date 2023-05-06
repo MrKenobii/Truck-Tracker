@@ -3,6 +3,7 @@ package com.anilduyguc.userservice.service.impl;
 import com.anilduyguc.userservice.dto.notification.GetNotificationResponse;
 import com.anilduyguc.userservice.dto.user.UserLocationRequest;
 import com.anilduyguc.userservice.modal.*;
+import com.anilduyguc.userservice.repository.CityRepository;
 import com.anilduyguc.userservice.repository.RoleRepository;
 import com.anilduyguc.userservice.repository.TruckRepository;
 import com.anilduyguc.userservice.repository.UserRepository;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TruckRepository truckRepository;
+    private final CityRepository cityRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     @Override
@@ -147,6 +149,56 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        return users;
+    }
+
+    @Override
+    public List<User> createStations() {
+        List<City> cities = cityRepository.findAll();
+        Role role = roleRepository.findByName("POLICE_STATION").orElseThrow(() -> new RuntimeException("No role found"));
+        List<User> users = new ArrayList<>();
+        for (City city: cities) {
+            User user = User.builder()
+                    .phoneNumber("5319337108")
+                    .city(city)
+                    .id(UUID.randomUUID().toString())
+                    .lastName("Müdürlüğü")
+                    .role(role)
+                    .status("OFFLINE")
+                    .latitude(city.getLatitude())
+                    .longitude(city.getLongitude())
+                    .password(passwordEncoder.encode("12345678"))
+                    .isAccountActive(true)
+                    .build();
+            if(city.getName().equals("İstanbul (Anadolu)")){
+                user.setEmail("istanbulanadoluemniyet@mail.com");
+                user.setName("İstanbul Anadolu Emniyet");
+            }else if(city.getName().equals("İstanbul (Avrupa)")){
+                user.setEmail("istanbulavremniyet@mail.com");
+                user.setName("İstanbul Avrupa Emniyet");
+            } else {
+                user.setEmail(city.getName().toLowerCase() + "emniyet@mail.com");
+                user.setName(city.getName() + " Emniyet");
+            }
+            userRepository.save(user);
+            users.add(user);
+        }
+        return users;
+    }
+
+    @Override
+    public List<User> updateLocations() {
+        Role role = roleRepository.findByName("POLICE_STATION").orElseThrow(() -> new RuntimeException("No role found"));
+        List<User> users = userRepository.findUsersByRole(role);
+        for (User user: users) {
+            Double latitude = Double.valueOf(user.getLatitude().substring(0, 4));
+            Double longitude = Double.valueOf(user.getLongitude().substring(0, 4));
+            Double d = longitude - 0.02;
+            Double d1 = latitude - 0.02;
+            user.setLatitude(d1.toString());
+            user.setLongitude(d.toString());
+            userRepository.save(user);
+        }
         return users;
     }
 }

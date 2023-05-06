@@ -15,7 +15,6 @@ import java.util.Date;
 @Data
 @Builder
 public class SaveNotificationRequest {
-    private String id;
     private String content;
     private Integer emergencyLevel;
     private String senderId;
