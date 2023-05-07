@@ -57,7 +57,7 @@ const Map = () => {
   const socket = useContext(SocketContext);
 
   const handleMapLeftClick = (e) => {
-    if(user.role.name === "ADMIN"){
+    if (user.role.name === "ADMIN") {
       setMarkLongitude(e.latLng.lng());
       setMarkLatitude(e.latLng.lat());
       setMarkers((current) => [
@@ -70,11 +70,21 @@ const Map = () => {
     }
   };
   const gatherUnits = (obj) => {
-    const filteredUsers = users.filter(u => u.role.name === "POLICE");
+    const filteredUsers = users.filter((u) => u.role.name === "POLICE");
     socket.emit("gatherUnits", {
       senderName: user,
       recievers: filteredUsers.length > 0 ? filteredUsers : users,
-      content: `${user.name + " " + user.lastName} tarafından acil karakola çağrılıyorsunuz.`,
+      content: `${
+        user.name + " " + user.lastName
+      } tarafından acil karakola çağrılıyorsunuz.`,
+      emergencyLevel: 5,
+    });
+  };
+  const sendHelpToCity = (city) => {
+    socket.emit("sendToCops", {
+      senderName: user,
+      recievers: users,
+      content: `Koordinatları (${city.latitude}, ${city.longitude} olan), ${city.formattedAddress} konumundaki, ${city.name} şehrinin toplanma alanına polis yardımı gerekmektedir.`,
       emergencyLevel: 5,
     });
   }
@@ -106,14 +116,14 @@ const Map = () => {
       socket.emit("sendToCops", {
         senderName: user,
         recievers: users,
-        content: `${obj.states}, ${obj.district} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+        content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
         emergencyLevel: 5,
       });
     } else {
       socket.emit("sendToCops", {
         senderName: user,
         recievers: users,
-        content: `${obj.states}, ${obj.district} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+        content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
         emergencyLevel: 5,
       });
     }
@@ -313,7 +323,7 @@ const Map = () => {
       if ((d.states == null || d.district == null) && data.latitude !== null) {
         Geocode.fromLatLng(d.latitude, d.longitude).then(
           (response) => {
-            console.log(response);
+            // console.log(response);
 
             for (
               var i = 0;
@@ -457,21 +467,32 @@ const Map = () => {
                     truckDestLat: truck.destinationCity.latitude,
                     truckDestLng: truck.destinationCity.longitude,
                   });
-                  const directionsService = new window.google.maps.DirectionsService();
-                  const directionsRenderer = new window.google.maps.DirectionsRenderer();
-                  var current = new window.google.maps.LatLng(truck.latitude, truck.longitude);
-                  if(truck.arrived){
-                    var dest = new window.google.maps.LatLng(truck.fromCity.latitude, truck.fromCity.longitude);
+                  const directionsService =
+                    new window.google.maps.DirectionsService();
+                  const directionsRenderer =
+                    new window.google.maps.DirectionsRenderer();
+                  var current = new window.google.maps.LatLng(
+                    truck.latitude,
+                    truck.longitude
+                  );
+                  if (truck.arrived) {
+                    var dest = new window.google.maps.LatLng(
+                      truck.fromCity.latitude,
+                      truck.fromCity.longitude
+                    );
                   } else {
-                    var dest = new window.google.maps.LatLng(truck.destinationCity.latitude, truck.destinationCity.longitude);
+                    var dest = new window.google.maps.LatLng(
+                      truck.destinationCity.latitude,
+                      truck.destinationCity.longitude
+                    );
                   }
                   var request = {
                     origin: current,
                     destination: dest,
-                    travelMode: 'DRIVING'
+                    travelMode: "DRIVING",
                   };
                   directionsService.route(request, function (response, status) {
-                    if (status == 'OK') {
+                    if (status == "OK") {
                       setDirections(response);
                       directionsRenderer.setDirections(response);
                     }
@@ -526,7 +547,8 @@ const Map = () => {
                 data = data.filter((city) => {
                   return city.urgency >= 3;
                 });
-                setUrgentCities(data);
+                
+                setUrgentCities(setAddress(data));
                 setIsLoading(false);
               })
               .catch((error) => {
@@ -581,11 +603,13 @@ const Map = () => {
   return isLoaded || isLoading ? (
     <GoogleMap
       mapContainerStyle={{ width: "100%", height: "100vh" }}
-      center={{ lat: markLatitude ? markLatitude : latitude, lng: markLongitude ? markLongitude : longitude }}
+      center={{
+        lat: markLatitude ? markLatitude : latitude,
+        lng: markLongitude ? markLongitude : longitude,
+      }}
       zoom={10}
       onClick={handleMapLeftClick}
     >
-      
       {markers.map((marker, index) => (
         <MarkerF
           key={index}
@@ -649,17 +673,17 @@ const Map = () => {
               <h5>{"Rol: " + getRole(user.role.name)}</h5>
               {user.role.name === "POLICE_STATION" && (
                 <Button
-                type="button"
-                fullWidth
-                variant="contained"
-                onClick={() => gatherUnits(user)}
-              >
-                Birimleri Topla
-              </Button>
+                  type="button"
+                  fullWidth
+                  variant="contained"
+                  onClick={() => gatherUnits(user)}
+                >
+                  Birimleri Topla
+                </Button>
               )}
               {user.role.name === "TRUCK_DRIVER" && (
                 <>
-                <DirectionsRenderer directions={directions} />
+                  <DirectionsRenderer directions={directions} />
                   {!isTookOff ? (
                     <Button
                       type="button"
@@ -712,7 +736,7 @@ const Map = () => {
                   )}
                 </>
               )}
-              {user.role.name === "TRUCK_DRIVER" &&  !usersTruck.escorted && (
+              {user.role.name === "TRUCK_DRIVER" && !usersTruck.escorted && (
                 <Button
                   type="button"
                   fullWidth
@@ -730,170 +754,172 @@ const Map = () => {
       </MarkerF>
 
       {trucks &&
-        trucks.filter(t => !t.arrived).map((truck, index) => (
-          <div key={index}>
-            {truck.user.id !== user.id && (
-              <MarkerF
-                title={truck.licensePlate}
-                key={index}
-                position={{
-                  lat: Number(truck.latitude),
-                  lng: Number(truck.longitude),
-                }}
-                icon={{
-                  url: "https://cdn-icons-png.flaticon.com/512/4047/4047296.png",
-                  scaledSize: new window.google.maps.Size(40, 40),
-                }}
-                onClick={(props, marker) => {
-                  console.log(props.latLng.lat());
-                  console.log(props.latLng.lng());
-                  setMarkLatitude(props.latLng.lat());
-                  setMarkLongitude(props.latLng.lng());
-                  setSelectedElement(truck);
-                  setActiveMarker(marker);
-                }}
-              >
-                {selectedElement && truck === selectedElement ? (
-                  <InfoWindowF
-                    visible={showInfoWindow}
-                    marker={activeMarker}
-                    onCloseClick={() => {
-                      setSelectedElement(null);
-                    }}
-                  >
-                    <div style={{ padding: 0, color: "black" }}>
-                      <h3>
-                        {truck.states}, {truck.district}
-                      </h3>
-                      <h4>
-                        Şöfor: {truck.user.name} {truck.user.lastName}
-                      </h4>
-                      <h4>
-                        {truck.licensePlate} plakalı tır {truck.fromCity.name}{" "}
-                        şehrinden yola çıktı.
-                      </h4>
-                      <h4>{truck.destinationCity.name} şehrine gidiyor.</h4>
-                      <h5>Tırın durumu "{truck.status}" </h5>
-                      <h5>
-                        {truck.water +
-                          " Litre su, " +
-                          truck.food +
-                          " kg yiyecek, " +
-                          truck.tent +
-                          " adet çadır, " +
-                          truck.clothing +
-                          " kişilik kıyafet taşıyor."}
-                        <Link
-                          to={`truck/${truck.id}`}
-                          state={{
-                            truck,
-                          }}
-                        >
-                          daha fazla bilgi için
-                        </Link>
-                      </h5>
-                      {(user.role.name === "ADMIN" ||
-                        user.role.name === "POLICE_STATION") &&
-                        !truck.escorted && (
-                          <Button
-                            type="button"
-                            fullWidth
-                            variant="contained"
-                            onClick={() => callCops(truck)}
-                            sx={{ mt: 3, mb: 2 }}
-                          >
-                            Polisleri yönlendir
-                          </Button>
-                        )}
-                      {(user.role.name === "ADMIN" ||
-                        user.role.name === "POLICE_STATION") &&
-                        truck.escorted && (
-                          <Card
-                            sx={{
-                              height: "%50",
-                              minWidth: 275,
-                              backgroundColor: "#1876D1",
-                              color: "white",
+        trucks
+          .filter((t) => !t.arrived)
+          .map((truck, index) => (
+            <div key={index}>
+              {truck.user.id !== user.id && (
+                <MarkerF
+                  title={truck.licensePlate}
+                  key={index}
+                  position={{
+                    lat: Number(truck.latitude),
+                    lng: Number(truck.longitude),
+                  }}
+                  icon={{
+                    url: "https://cdn-icons-png.flaticon.com/512/4047/4047296.png",
+                    scaledSize: new window.google.maps.Size(40, 40),
+                  }}
+                  onClick={(props, marker) => {
+                    console.log(props.latLng.lat());
+                    console.log(props.latLng.lng());
+                    setMarkLatitude(props.latLng.lat());
+                    setMarkLongitude(props.latLng.lng());
+                    setSelectedElement(truck);
+                    setActiveMarker(marker);
+                  }}
+                >
+                  {selectedElement && truck === selectedElement ? (
+                    <InfoWindowF
+                      visible={showInfoWindow}
+                      marker={activeMarker}
+                      onCloseClick={() => {
+                        setSelectedElement(null);
+                      }}
+                    >
+                      <div style={{ padding: 0, color: "black" }}>
+                        <h3>
+                          {truck.states}, {truck.district}
+                        </h3>
+                        <h4>
+                          Şöfor: {truck.user.name} {truck.user.lastName}
+                        </h4>
+                        <h4>
+                          {truck.licensePlate} plakalı tır {truck.fromCity.name}{" "}
+                          şehrinden yola çıktı.
+                        </h4>
+                        <h4>{truck.destinationCity.name} şehrine gidiyor.</h4>
+                        <h5>Tırın durumu "{truck.status}" </h5>
+                        <h5>
+                          {truck.water +
+                            " Litre su, " +
+                            truck.food +
+                            " kg yiyecek, " +
+                            truck.tent +
+                            " adet çadır, " +
+                            truck.clothing +
+                            " kişilik kıyafet taşıyor."}
+                          <Link
+                            to={`truck/${truck.id}`}
+                            state={{
+                              truck,
                             }}
                           >
-                            <CardContent>
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                sx={{ fontSize: 12 }}
-                              >
-                                Polis eşlik ediyor
-                              </Typography>
-                            </CardContent>
-                          </Card>
-                        )}
-                      {!(
-                        user.role.name === "ADMIN" ||
-                        user.role.name === "POLICE_STATION"
-                      ) &&
-                        truck.escorted && (
-                          <Card
-                            sx={{
-                              height: "%50",
-                              minWidth: 275,
-                              backgroundColor: "#1876D1",
-                              color: "white",
-                            }}
-                          >
-                            <CardContent>
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                sx={{ fontSize: 15 }}
-                              >
-                                Polis eşlik ediyor
-                              </Typography>
-                            </CardContent>
-                          </Card>
-                        )}
-                      {!(
-                        user.role.name === "ADMIN" ||
-                        user.role.name === "POLICE_STATION"
-                      ) &&
-                        !truck.escorted && (
-                          <Card
-                            sx={{
-                              height: "%50",
-                              minWidth: 275,
-                              backgroundColor: "#1876D1",
-                              color: "white",
-                            }}
-                          >
-                            <CardContent>
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                sx={{ fontSize: 15 }}
-                              >
-                                Tıra eşlik edilmiyor
-                              </Typography>
-                            </CardContent>
-                            {user.role.name === "POLICE" && (
-                              <CardActions>
-                                <Button
-                                  variant="contained"
-                                  color="warning"
-                                  size="small"
-                                  onClick={() => escortTruck(truck)}
+                            daha fazla bilgi için
+                          </Link>
+                        </h5>
+                        {(user.role.name === "ADMIN" ||
+                          user.role.name === "POLICE_STATION") &&
+                          !truck.escorted && (
+                            <Button
+                              type="button"
+                              fullWidth
+                              variant="contained"
+                              onClick={() => callCops(truck)}
+                              sx={{ mt: 3, mb: 2 }}
+                            >
+                              Polisleri yönlendir
+                            </Button>
+                          )}
+                        {(user.role.name === "ADMIN" ||
+                          user.role.name === "POLICE_STATION") &&
+                          truck.escorted && (
+                            <Card
+                              sx={{
+                                height: "%50",
+                                minWidth: 275,
+                                backgroundColor: "#1876D1",
+                                color: "white",
+                              }}
+                            >
+                              <CardContent>
+                                <Typography
+                                  variant="h6"
+                                  component="div"
+                                  sx={{ fontSize: 12 }}
                                 >
-                                  Tıra eşlik et!
-                                </Button>
-                              </CardActions>
-                            )}
-                          </Card>
-                        )}
-                    </div>
-                  </InfoWindowF>
-                ) : null}
-              </MarkerF>
-            )}
-          </div>
-        ))}
+                                  Polis eşlik ediyor
+                                </Typography>
+                              </CardContent>
+                            </Card>
+                          )}
+                        {!(
+                          user.role.name === "ADMIN" ||
+                          user.role.name === "POLICE_STATION"
+                        ) &&
+                          truck.escorted && (
+                            <Card
+                              sx={{
+                                height: "%50",
+                                minWidth: 275,
+                                backgroundColor: "#1876D1",
+                                color: "white",
+                              }}
+                            >
+                              <CardContent>
+                                <Typography
+                                  variant="h6"
+                                  component="div"
+                                  sx={{ fontSize: 15 }}
+                                >
+                                  Polis eşlik ediyor
+                                </Typography>
+                              </CardContent>
+                            </Card>
+                          )}
+                        {!(
+                          user.role.name === "ADMIN" ||
+                          user.role.name === "POLICE_STATION"
+                        ) &&
+                          !truck.escorted && (
+                            <Card
+                              sx={{
+                                height: "%50",
+                                minWidth: 275,
+                                backgroundColor: "#1876D1",
+                                color: "white",
+                              }}
+                            >
+                              <CardContent>
+                                <Typography
+                                  variant="h6"
+                                  component="div"
+                                  sx={{ fontSize: 15 }}
+                                >
+                                  Tıra eşlik edilmiyor
+                                </Typography>
+                              </CardContent>
+                              {user.role.name === "POLICE" && (
+                                <CardActions>
+                                  <Button
+                                    variant="contained"
+                                    color="warning"
+                                    size="small"
+                                    onClick={() => escortTruck(truck)}
+                                  >
+                                    Tıra eşlik et!
+                                  </Button>
+                                </CardActions>
+                              )}
+                            </Card>
+                          )}
+                      </div>
+                    </InfoWindowF>
+                  ) : null}
+                </MarkerF>
+              )}
+            </div>
+          ))}
       {urgentCities &&
         urgentCities.map((city, index) => (
           <MarkerF
@@ -938,52 +964,109 @@ const Map = () => {
                       city.tent +
                       " adet çadır, " +
                       city.clothing +
-                      " kişilik kıyafet taşıyor."}
+                      " kişilik kıyafet ihtiyacı var."}
                   </h4>
                   <h5>{"NÜFUS: " + city.population}</h5>
+                  {(user.role.name === "ADMIN" ||
+                    (user.role.name === "POLICE_STATION" && user.city.name === city.name)) && (
+                      <Button
+                      type="button"
+                      variant="contained"
+                      onClick={() => sendHelpToCity(city)}
+                      sx={{ mt: 3, mb: 2 }}
+                    >
+                      Polisleri yönlendir
+                    </Button>
+                    )}
                 </div>
               </InfoWindowF>
             ) : null}
           </MarkerF>
         ))}
-      {user.role.name === "ADMIN" && users &&
-        users.filter(u => (u.role.name !== "NORMAL" && u.role.name !== "ADMIN")).map((user, index) => (
-          <MarkerF
-            key={index}
-            position={{
-              lng: Number(user.longitude),
-              lat: Number(user.latitude),
-            }}
-            icon={{
-              url: getImageByRole(user.role.name),
-              scaledSize: new window.google.maps.Size(40, 40),
-            }}
-            onClick={(props, marker) => {
-              setMarkLatitude(props.latLng.lat());
-              setMarkLongitude(props.latLng.lng());
-              setSelectedElement(user);
-              setActiveMarker(marker);
-            }}
-          >
-            {selectedElement && user === selectedElement ? (
-              <InfoWindowF
-                visible={showInfoWindow}
-                marker={activeMarker}
-                onCloseClick={() => {
-                  setSelectedElement(null);
-                }}
-              >
-                <div style={{ padding: 0, color: "black" }}>
-                  <h3>
-                    {user.states}, {user.district}
-                  </h3>
-                  <h4>{user.name + " " + user.lastName}</h4>
-                  <h5>{"Rol: " + getRole(user.role.name)}</h5>
-                </div>
-              </InfoWindowF>
-            ) : null}
-          </MarkerF>
-        ))}
+      {user.role.name === "ADMIN" &&
+        users &&
+        users
+          .filter((u) => u.role.name !== "NORMAL" && u.role.name !== "ADMIN")
+          .map((user, index) => (
+            <MarkerF
+              key={index}
+              position={{
+                lng: Number(user.longitude),
+                lat: Number(user.latitude),
+              }}
+              icon={{
+                url: getImageByRole(user.role.name),
+                scaledSize: new window.google.maps.Size(40, 40),
+              }}
+              onClick={(props, marker) => {
+                setMarkLatitude(props.latLng.lat());
+                setMarkLongitude(props.latLng.lng());
+                setSelectedElement(user);
+                setActiveMarker(marker);
+              }}
+            >
+              {selectedElement && user === selectedElement ? (
+                <InfoWindowF
+                  visible={showInfoWindow}
+                  marker={activeMarker}
+                  onCloseClick={() => {
+                    setSelectedElement(null);
+                  }}
+                >
+                  <div style={{ padding: 0, color: "black" }}>
+                    <h3>
+                      {user.states}, {user.district}
+                    </h3>
+                    <h4>{user.name + " " + user.lastName}</h4>
+                    <h5>{"Rol: " + getRole(user.role.name)}</h5>
+                  </div>
+                </InfoWindowF>
+              ) : null}
+            </MarkerF>
+          ))}
+      {(user.role.name === "TRUCK_DRIVER" ||
+        user.role.name === "POLICE" ||
+        user.role.name === "POLICE_STATION") &&
+        users &&
+        users
+          .filter((u) => u.role.name === "POLICE_STATION")
+          .map((user, index) => (
+            <MarkerF
+              key={index}
+              position={{
+                lng: Number(user.longitude),
+                lat: Number(user.latitude),
+              }}
+              icon={{
+                url: getImageByRole(user.role.name),
+                scaledSize: new window.google.maps.Size(40, 40),
+              }}
+              onClick={(props, marker) => {
+                setMarkLatitude(props.latLng.lat());
+                setMarkLongitude(props.latLng.lng());
+                setSelectedElement(user);
+                setActiveMarker(marker);
+              }}
+            >
+              {selectedElement && user === selectedElement ? (
+                <InfoWindowF
+                  visible={showInfoWindow}
+                  marker={activeMarker}
+                  onCloseClick={() => {
+                    setSelectedElement(null);
+                  }}
+                >
+                  <div style={{ padding: 0, color: "black" }}>
+                    <h3>
+                      {user.states}, {user.district}
+                    </h3>
+                    <h4>{user.name + " " + user.lastName}</h4>
+                    <h5>{"Rol: " + getRole(user.role.name)}</h5>
+                  </div>
+                </InfoWindowF>
+              ) : null}
+            </MarkerF>
+          ))}
     </GoogleMap>
   ) : (
     <LoadingComponent />

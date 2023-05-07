@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
       );
       recievers.map((reciverName) => {
         const receiver = getUser(reciverName.username);
-        
+
         if (receiver) {
           console.log("------SENDER------");
           console.log("Sender: " + senderName.username);
@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
               emergencyLevel,
             },
           };
-          
+
           axios
             .post(
               `http://localhost:8080/api/v1/notification/${reciverName.id}/save`,
@@ -105,9 +105,9 @@ io.on("connection", (socket) => {
               }
             )
             .then((data) => {
-              console.log("SUBMIT")
+              console.log("SUBMIT");
               console.log(data.data);
-              
+
               io.to(receiver.socketId).emit("getNotification", {
                 senderName: payload.senderName,
                 notif: {
@@ -120,7 +120,6 @@ io.on("connection", (socket) => {
             })
             .catch((err) => console.log(err));
         }
-        
       });
     }
   );
@@ -137,10 +136,15 @@ io.on("connection", (socket) => {
           receiver &&
           receiver.socketId &&
           (reciverName.role.name === "ADMIN" ||
-            reciverName.role.name === "POLICE_STATION" || (reciverName.role.name === "POLICE" && senderName.role.name === "POLICE_STATION")
-          )
+            reciverName.role.name === "POLICE_STATION" ||
+            (reciverName.role.name === "POLICE" &&
+              senderName.role.name === "POLICE_STATION") ||
+            (reciverName.role.name === "POLICE_STATION" &&
+              senderName.role.name === "ADMIN"))
         ) {
-          console.log("REciveerrr " + reciverName.name + " " + reciverName.lastName);
+          console.log(
+            "REciveerrr " + reciverName.name + " " + reciverName.lastName
+          );
           const payload = {
             senderName,
             notif: {
@@ -162,9 +166,9 @@ io.on("connection", (socket) => {
               }
             )
             .then((data) => {
-              console.log("SUBMIT")
+              console.log("SUBMIT");
               console.log(data.data);
-              
+
               io.to(receiver.socketId).emit("getNotification", {
                 senderName: payload.senderName,
                 notif: {
@@ -192,10 +196,11 @@ io.on("connection", (socket) => {
           receiver &&
           receiver.socketId &&
           (reciverName.role.name === "ADMIN" ||
-            reciverName.role.name === "POLICE"
-          )
+            reciverName.role.name === "POLICE")
         ) {
-          console.log("Reciveerrr " + reciverName.name + " " + reciverName.lastName);
+          console.log(
+            "Reciveerrr " + reciverName.name + " " + reciverName.lastName
+          );
           const payload = {
             senderName,
             notif: {
@@ -217,9 +222,9 @@ io.on("connection", (socket) => {
               }
             )
             .then((data) => {
-              console.log("SUBMIT")
+              console.log("SUBMIT");
               console.log(data.data);
-              
+
               io.to(receiver.socketId).emit("getNotification", {
                 senderName: payload.senderName,
                 notif: {
@@ -235,52 +240,55 @@ io.on("connection", (socket) => {
       });
     }
   );
-  socket.on("replyMessage", ({ senderName, reciever, content, emergencyLevel }) => {
-    console.log(
-      "----------------------CALL COPS---------------------- : " + content
-    );
-    // console.log(senderName);
-    // console.log(reciever);
-    const receiverSocket = getUser(reciever.username);
-    if(receiverSocket){
-      console.log("Console: " + receiverSocket.socketId);
-      const payload = {
-        senderName,
-        notif: {
-          content,
-          emergencyLevel,
-        },
-      };
-
-      axios
-        .post(
-          `http://localhost:8080/api/v1/notification/${reciever.id}/save`,
-          {
-            content: payload.notif.content,
-            emergencyLevel: payload.notif.emergencyLevel,
-            senderId: payload.senderName.id,
+  socket.on(
+    "replyMessage",
+    ({ senderName, reciever, content, emergencyLevel }) => {
+      console.log(
+        "----------------------CALL COPS---------------------- : " + content
+      );
+      // console.log(senderName);
+      // console.log(reciever);
+      const receiverSocket = getUser(reciever.username);
+      if (receiverSocket) {
+        console.log("Console: " + receiverSocket.socketId);
+        const payload = {
+          senderName,
+          notif: {
+            content,
+            emergencyLevel,
           },
-          {
-            headers: { Authorization: `Bearer ${reciever.token}` },
-          }
-        )
-        .then((data) => {
-          console.log("SUBMIT")
-          console.log(data.data);
-          
-          io.to(receiverSocket.socketId).emit("getNotification", {
-            senderName: payload.senderName,
-            notif: {
-              id: data.data.id,
+        };
+
+        axios
+          .post(
+            `http://localhost:8080/api/v1/notification/${reciever.id}/save`,
+            {
               content: payload.notif.content,
               emergencyLevel: payload.notif.emergencyLevel,
-              createdAt: data.data.createdAt,
+              senderId: payload.senderName.id,
             },
-          });
-        })
-        .catch((err) => console.log(err));
+            {
+              headers: { Authorization: `Bearer ${reciever.token}` },
+            }
+          )
+          .then((data) => {
+            console.log("SUBMIT");
+            console.log(data.data);
+
+            io.to(receiverSocket.socketId).emit("getNotification", {
+              senderName: payload.senderName,
+              notif: {
+                id: data.data.id,
+                content: payload.notif.content,
+                emergencyLevel: payload.notif.emergencyLevel,
+                createdAt: data.data.createdAt,
+              },
+            });
+          })
+          .catch((err) => console.log(err));
+      }
     }
-  });
+  );
 
   socket.on("disconnect", () => {
     console.log("Disconnected");
