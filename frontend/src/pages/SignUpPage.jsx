@@ -21,23 +21,6 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import { BASE_URL } from "../constants/urls";
 
-function Copyright(props) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
 
 const theme = createTheme();
 const SignUpPage = () => {
@@ -346,7 +329,6 @@ const SignUpPage = () => {
                 </Grid>
               </Box>
             </Box>
-            {/* <Copyright sx={{ mt: 5 }} /> */}
           </Container>
         </ThemeProvider>
       )}

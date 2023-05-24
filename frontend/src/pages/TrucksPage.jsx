@@ -12,7 +12,6 @@ const TrucksPage = () => {
     }, []);
     return (
         <div>
-            {/* <TrucksTable /> */}
             <TrucksUpdatedTable />
         </div>
     )

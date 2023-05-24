@@ -29,6 +29,4 @@ public class City {
     @OneToMany(mappedBy = "city", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private List<User> users;
-//    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    private List<Truck> truck;
 }

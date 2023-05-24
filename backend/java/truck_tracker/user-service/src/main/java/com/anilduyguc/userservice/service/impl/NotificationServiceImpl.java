@@ -64,8 +64,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         //notificationRepository.delete(notification);
-
-
     }
 
     @Override

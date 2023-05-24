@@ -82,9 +82,6 @@ public class UserServiceImpl implements UserService {
         userToUpdate.setLongitude(user.getLongitude());
         userToUpdate.setAccountActivationToken(user.getAccountActivationToken());
         userToUpdate.setSmsActivationToken(user.getSmsActivationToken());
-//        userToUpdate.setCity(user.getCity());
-//        userToUpdate.setNotification(user.getNotification());
-//        userToUpdate.setRole(user.getRole());
         userRepository.save(userToUpdate);
         return userToUpdate;
     }

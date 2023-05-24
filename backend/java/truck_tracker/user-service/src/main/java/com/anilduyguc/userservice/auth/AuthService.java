@@ -127,6 +127,7 @@ public class AuthService {
                 return AuthenticationResponse.builder()
                         .token(jwt)
                         .message("Giriş başarılı")
+                        .userId(user.getId())
                         .build();
             } else {
                 return AuthenticationResponse.builder()

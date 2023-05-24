@@ -12,7 +12,6 @@ const UsersPage = () => {
     }, []);
     return (
         <div>
-            {/* <UsersTable /> */}
             <UsersUpdatedTable />
         </div>
     )

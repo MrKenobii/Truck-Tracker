@@ -24,10 +24,6 @@ import {
 import CreateTruck from "./CreateTruck";
 import { SocketContext } from "../context/socket";
 
-//38.473619157092614, 27.135962991566277
-//41.41639660475681, 29.602251748436288
-//40.99893685519544, 28.857916572952533
-// https://dev.to/lauratoddcodes/using-the-google-maps-api-in-react-31ph
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 const Map = () => {
@@ -84,7 +80,7 @@ const Map = () => {
     socket.emit("sendToCops", {
       senderName: user,
       recievers: users,
-      content: `Koordinatları (${city.latitude}, ${city.longitude} olan), ${city.formattedAddress} konumundaki, ${city.name} şehrinin toplanma alanına polis yardımı gerekmektedir.`,
+      content: `Koordinatları (${city.latitude}, ${city.longitude}) olan, ${city.formattedAddress} konumundaki, ${city.name} şehrinin toplanma alanına polis yardımı gerekmektedir.`,
       emergencyLevel: 5,
     });
   }
@@ -113,24 +109,79 @@ const Map = () => {
   const callCops = (obj) => {
     console.log(obj);
     if (obj.hasOwnProperty("licensePlate")) {
-      socket.emit("sendToCops", {
-        senderName: user,
-        recievers: users,
-        content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
-        emergencyLevel: 5,
-      });
+      var closestStation;
+      var minVal;
+      let policeStationUsers = users.filter(u => u.role.name === "POLICE_STATION");
+      for(let i = 0; i < policeStationUsers.length; i++){
+        let result = Math.sqrt(Math.pow((Number(policeStationUsers[i].latitude) - Number(obj.latitude)), 2) + Math.pow((Number(policeStationUsers[i].longitude) - Number(obj.longitude)), 2));
+        if(minVal){
+          if(result < minVal){
+            minVal = result;
+            closestStation = policeStationUsers[i];
+          }
+        } else {
+          
+          minVal = result;
+          closestStation = policeStationUsers[i];
+        }
+        if(minVal == 0) break;
+      }
+      if(minVal && closestStation){
+        let admins = users.filter(u => u.role.name === "ADMIN");
+        socket.emit("sendToCops", {
+          senderName: user,
+          recievers: [closestStation, ...admins],
+          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          emergencyLevel: 5,
+        });
+
+      } else {
+        socket.emit("sendToCops", {
+          senderName: user,
+          recievers: users,
+          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          emergencyLevel: 5,
+        });
+      }
     } else {
-      socket.emit("sendToCops", {
-        senderName: user,
-        recievers: users,
-        content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
-        emergencyLevel: 5,
-      });
+      var closestStation;
+      var minVal;
+      let policeStationUsers = users.filter(u => u.role.name === "POLICE_STATION");
+      for(let i = 0; i < policeStationUsers.length; i++){
+        let result = Math.sqrt(Math.pow((Number(policeStationUsers[i].latitude) - Number(obj.latitude)), 2) + Math.pow((Number(policeStationUsers[i].longitude) - Number(obj.longitude)), 2));
+        if(minVal){
+          if(result < minVal){
+            minVal = result;
+            closestStation = policeStationUsers[i];
+          }
+        } else {
+          
+          minVal = result;
+          closestStation = policeStationUsers[i];
+        }
+        if(minVal == 0) break;
+      }
+      if(minVal && closestStation){
+        let admins = users.filter(u => u.role.name === "ADMIN");
+
+        socket.emit("sendToCops", {
+          senderName: user,
+          recievers: [closestStation, ...admins],
+          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          emergencyLevel: 5,
+        });
+      } else {
+        socket.emit("sendToCops", {
+          senderName: user,
+          recievers: users,
+          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          emergencyLevel: 5,
+        });
+      }
+      
     }
   };
   const removeMarker = (marker) => {
-    // setMarkLongitude(null);
-    // setMarkLatitude(null);
     const newMarkers = markers.filter(
       (m) => m.lat !== marker.lat && m.lng !== marker.lng
     );
@@ -525,16 +576,7 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                // toast.error("Hata !", {
-                //   position: toast.POSITION.BOTTOM_CENTER,
-                //   autoClose: 3000,
-                //   hideProgressBar: false,
-                //   closeOnClick: true,
-                //   pauseOnHover: true,
-                //   draggable: true,
-                //   progress: undefined,
-                //   theme: "dark",
-                // });
+                
                 console.log(error);
               });
 
@@ -552,16 +594,7 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                // toast.error("Hata !", {
-                //   position: toast.POSITION.BOTTOM_CENTER,
-                //   autoClose: 3000,
-                //   hideProgressBar: false,
-                //   closeOnClick: true,
-                //   pauseOnHover: true,
-                //   draggable: true,
-                //   progress: undefined,
-                //   theme: "dark",
-                // });
+                
                 console.log(error);
               });
             fetchUsers()
@@ -809,14 +842,6 @@ const Map = () => {
                             " adet çadır, " +
                             truck.clothing +
                             " kişilik kıyafet taşıyor."}
-                          <Link
-                            to={`truck/${truck.id}`}
-                            state={{
-                              truck,
-                            }}
-                          >
-                            daha fazla bilgi için
-                          </Link>
                         </h5>
                         {(user.role.name === "ADMIN" ||
                           user.role.name === "POLICE_STATION") &&

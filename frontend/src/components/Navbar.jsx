@@ -56,7 +56,6 @@ const Navbar = () => {
   const [openNot, setOpenNot] = useState(false);
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
-  //const [user, setUser] = useState(obj.user);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -127,13 +126,13 @@ const Navbar = () => {
     };
     const token = localStorage.getItem("token");
     if (token !== null) {
-          //setNotifications((prev) => [...prev, user.notifications]);
+          
         
           fetchNotifications(token).then((res) => {
             console.log(res.data);
             setNotifications(res.data);
           }).catch((error) => console.log(error));
-          //setNotifications(user.notifications);
+          
     }
     console.log(notifications);
   }, []);
