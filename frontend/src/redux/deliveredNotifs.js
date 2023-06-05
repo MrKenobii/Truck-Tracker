@@ -10,9 +10,7 @@ export const deliveredNotifsSlice = createSlice({
   },
   reducers: {
     add: (state, action) => {
-      //  const newData = [state.value.notifs, ...action.payload.newNotifs];
-      // state.value.notifs = newData;
-
+      
       state.value.notifs = [...state.value.notifs, ...action.payload.newNotifs];
       state.value.notifToastList = [
         ...state.value.notifToastList,

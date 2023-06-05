@@ -83,10 +83,22 @@ const Map = () => {
       content: `Koordinatları (${city.latitude}, ${city.longitude}) olan, ${city.formattedAddress} konumundaki, ${city.name} şehrinin toplanma alanına polis yardımı gerekmektedir.`,
       emergencyLevel: 5,
     });
-  }
+  };
   const canDeliver = () => {
     if (usersTruck) {
       console.log(usersTruck);
+      let result = Math.sqrt(
+        Math.pow(
+          Number(usersTruck?.latitude) -
+            Number(usersTruck.destinationCity?.latitude),
+          2
+        ) +
+          Math.pow(
+            Number(usersTruck?.longitude) -
+              Number(usersTruck.destinationCity?.latitude),
+            2
+          )
+      );
       console.log({
         lat: Math.abs(
           usersTruck?.latitude - usersTruck.destinationCity?.latitude
@@ -95,13 +107,8 @@ const Map = () => {
           usersTruck?.longitude - usersTruck.destinationCity?.longitude
         ),
       });
-      if (
-        Math.abs(usersTruck?.latitude - usersTruck?.destinationCity?.latitude) <
-          0.999 &&
-        Math.abs(
-          usersTruck?.longitude - usersTruck?.destinationCity?.longitude
-        ) < 0.999
-      ) {
+      console.log(result);
+      if (result <= 0.2) {
         return true;
       } else return false;
     } else return false;
@@ -111,74 +118,108 @@ const Map = () => {
     if (obj.hasOwnProperty("licensePlate")) {
       var closestStation;
       var minVal;
-      let policeStationUsers = users.filter(u => u.role.name === "POLICE_STATION");
-      for(let i = 0; i < policeStationUsers.length; i++){
-        let result = Math.sqrt(Math.pow((Number(policeStationUsers[i].latitude) - Number(obj.latitude)), 2) + Math.pow((Number(policeStationUsers[i].longitude) - Number(obj.longitude)), 2));
-        if(minVal){
-          if(result < minVal){
+      let policeStationUsers = users.filter(
+        (u) => u.role.name === "POLICE_STATION"
+      );
+      for (let i = 0; i < policeStationUsers.length; i++) {
+        let result = Math.sqrt(
+          Math.pow(
+            Number(policeStationUsers[i].latitude) - Number(obj.latitude),
+            2
+          ) +
+            Math.pow(
+              Number(policeStationUsers[i].longitude) - Number(obj.longitude),
+              2
+            )
+        );
+        if (minVal) {
+          if (result < minVal) {
             minVal = result;
             closestStation = policeStationUsers[i];
           }
         } else {
-          
           minVal = result;
           closestStation = policeStationUsers[i];
         }
-        if(minVal == 0) break;
+        if (minVal == 0) break;
       }
-      if(minVal && closestStation){
-        let admins = users.filter(u => u.role.name === "ADMIN");
+      if (minVal && closestStation) {
+        let admins = users.filter((u) => u.role.name === "ADMIN");
         socket.emit("sendToCops", {
           senderName: user,
           recievers: [closestStation, ...admins],
-          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          content: `Koordinatları (${
+            obj.latitude + ", " + obj.longitude
+          }) olan, ${obj.formattedAddress} konumundaki '${
+            obj.licensePlate
+          }' plakalı tıra polis yardımı gerekmektedir.`,
           emergencyLevel: 5,
         });
-
       } else {
         socket.emit("sendToCops", {
           senderName: user,
           recievers: users,
-          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${obj.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          content: `Koordinatları (${
+            obj.latitude + ", " + obj.longitude
+          }) olan, ${obj.formattedAddress} konumundaki '${
+            obj.licensePlate
+          }' plakalı tıra polis yardımı gerekmektedir.`,
           emergencyLevel: 5,
         });
       }
     } else {
       var closestStation;
       var minVal;
-      let policeStationUsers = users.filter(u => u.role.name === "POLICE_STATION");
-      for(let i = 0; i < policeStationUsers.length; i++){
-        let result = Math.sqrt(Math.pow((Number(policeStationUsers[i].latitude) - Number(obj.latitude)), 2) + Math.pow((Number(policeStationUsers[i].longitude) - Number(obj.longitude)), 2));
-        if(minVal){
-          if(result < minVal){
+      let policeStationUsers = users.filter(
+        (u) => u.role.name === "POLICE_STATION"
+      );
+      for (let i = 0; i < policeStationUsers.length; i++) {
+        let result = Math.sqrt(
+          Math.pow(
+            Number(policeStationUsers[i].latitude) - Number(obj.latitude),
+            2
+          ) +
+            Math.pow(
+              Number(policeStationUsers[i].longitude) - Number(obj.longitude),
+              2
+            )
+        );
+        if (minVal) {
+          if (result < minVal) {
             minVal = result;
             closestStation = policeStationUsers[i];
           }
         } else {
-          
           minVal = result;
           closestStation = policeStationUsers[i];
         }
-        if(minVal == 0) break;
+        if (minVal == 0) break;
       }
-      if(minVal && closestStation){
-        let admins = users.filter(u => u.role.name === "ADMIN");
+      if (minVal && closestStation) {
+        let admins = users.filter((u) => u.role.name === "ADMIN");
 
         socket.emit("sendToCops", {
           senderName: user,
           recievers: [closestStation, ...admins],
-          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          content: `Koordinatları (${
+            obj.latitude + ", " + obj.longitude
+          }) olan, ${obj.formattedAddress} konumundaki '${
+            usersTruck.licensePlate
+          }' plakalı tıra polis yardımı gerekmektedir.`,
           emergencyLevel: 5,
         });
       } else {
         socket.emit("sendToCops", {
           senderName: user,
           recievers: users,
-          content: `Koordinatları (${obj.latitude + ", " + obj.longitude}) olan, ${obj.formattedAddress} konumundaki '${usersTruck.licensePlate}' plakalı tıra polis yardımı gerekmektedir.`,
+          content: `Koordinatları (${
+            obj.latitude + ", " + obj.longitude
+          }) olan, ${obj.formattedAddress} konumundaki '${
+            usersTruck.licensePlate
+          }' plakalı tıra polis yardımı gerekmektedir.`,
           emergencyLevel: 5,
         });
       }
-      
     }
   };
   const removeMarker = (marker) => {
@@ -576,7 +617,6 @@ const Map = () => {
                 setIsLoading(false);
               })
               .catch((error) => {
-                
                 console.log(error);
               });
 
@@ -589,12 +629,11 @@ const Map = () => {
                 data = data.filter((city) => {
                   return city.urgency >= 3;
                 });
-                
+
                 setUrgentCities(setAddress(data));
                 setIsLoading(false);
               })
               .catch((error) => {
-                
                 console.log(error);
               });
             fetchUsers()
@@ -993,8 +1032,9 @@ const Map = () => {
                   </h4>
                   <h5>{"NÜFUS: " + city.population}</h5>
                   {(user.role.name === "ADMIN" ||
-                    (user.role.name === "POLICE_STATION" && user.city.name === city.name)) && (
-                      <Button
+                    (user.role.name === "POLICE_STATION" &&
+                      user.city.name === city.name)) && (
+                    <Button
                       type="button"
                       variant="contained"
                       onClick={() => sendHelpToCity(city)}
@@ -1002,7 +1042,7 @@ const Map = () => {
                     >
                       Polisleri yönlendir
                     </Button>
-                    )}
+                  )}
                 </div>
               </InfoWindowF>
             ) : null}

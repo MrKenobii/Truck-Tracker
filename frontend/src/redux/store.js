@@ -24,9 +24,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   user: userSlice,
-  // authModal: authModalSlice,
-  // globalLoading: globalLoadingSlice,
-  // appState: appStateSlice
+  
 })
 
 

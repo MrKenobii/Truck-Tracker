@@ -125,11 +125,6 @@ const TrucksUpdatedTable = () => {
               }
             }
           }
-          //console.log(d.formattedAddress);
-        //   return {
-        //     formattedAddress: d.formattedAddress,
-        //     district: d.district,
-        //   };
         return d;
         },
         (error) => {

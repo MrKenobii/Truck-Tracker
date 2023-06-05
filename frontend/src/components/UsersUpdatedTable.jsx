@@ -90,7 +90,6 @@ const UsersUpdatedTable = () => {
     if (!Object.keys(validationErrors).length) {
       console.log(values);
       tableData[row.index] = values;
-      //send/receive api updates here, then refetch or update local table data for re-render
       setTableData([...tableData]);
       exitEditingMode(); //required to exit editing mode and close modal
     }
@@ -413,22 +412,6 @@ const UsersUpdatedTable = () => {
           ...getCommonEditTextFieldProps(cell),
         }),
       },
-      // {
-      //   accessorKey: "formattedAddress",
-      //   enableEditing: false,
-      //   header: "Açık Address",
-      //   muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-      //     ...getCommonEditTextFieldProps(cell),
-      //   }),
-      // },
-      // {
-      //   accessorKey: "district",
-      //   enableEditing: false,
-      //   header: "İlçe",
-      //   muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-      //     ...getCommonEditTextFieldProps(cell),
-      //   }),
-      // },
     ],
     [getCommonEditTextFieldProps]
   );
@@ -454,12 +437,12 @@ const UsersUpdatedTable = () => {
                 ? "AKTİFLEŞTİRİLMİŞ"
                 : "AKTİFLEŞTİRİLMEMİŞ";
 
-              //let fullAddress = `${getAddressStates(res)}, ${getAddressCity(res)}`;
+              
 
               return { ...res, city, role, accountStatus };
             });
             console.log(response);
-            //setTableData(setAddress(response));
+            
 
             setTableData(response.filter((r) => r.id !== user.id));
             console.log("------------------");
@@ -491,13 +474,7 @@ const UsersUpdatedTable = () => {
         onEditingRowCancel={handleCancelRowEdits}
         renderRowActions={({ row, table }) => (
           <Box sx={{ display: "flex", gap: "1rem" }}>
-            {/* <Tooltip arrow placement="left" title="Edit">
-              <IconButton onClick={() => table.setEditingRow(row)}>
-                <Edit />
-              </IconButton>
-            </Tooltip> */}
             <Tooltip arrow placement="right" title="Delete">
-              {/* <IconButton color="error" onClick={() => handleDeleteRow(row)}> */}
               <IconButton color="error" onClick={() => handleClickDeleteOpen(row)}>
                 <Delete />
               </IconButton>
@@ -564,7 +541,6 @@ const CreateNewAccountModal = ({ open, columns, onClose, onSubmit }) => {
     console.log(event.target.value);
   };
   const handleSubmit = () => {
-    //put your validation logic here
     const saveUser = async (user) => {
       return await axios.post(`${BASE_URL}/auth/register`, user, {});
     };
