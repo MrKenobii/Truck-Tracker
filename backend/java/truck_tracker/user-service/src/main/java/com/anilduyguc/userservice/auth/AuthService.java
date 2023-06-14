@@ -58,12 +58,12 @@ public class AuthService {
                     .password(passwordEncoder.encode(registerRequest.getPassword()))
                     .role(role)
                     .build();
-            twilioService.sendRegistrationInfo(user);
             try {
                 emailService.sendHtmlEmailActivateAccount(user);
             } catch (MessagingException e) {
                 throw new RuntimeException(e);
             }
+            twilioService.sendRegistrationInfo(user);
             userRepository.save(user);
             return AuthenticationResponse.builder()
                     .token(null)
